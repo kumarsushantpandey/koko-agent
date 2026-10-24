@@ -101,3 +101,7 @@ Whenever extending this codebase, adhere strictly to [GUIDLINES.md](./GUIDLINES.
 - Always use relative file paths prefixed with `./` in all Markdown files.
 - Document any new engineering discoveries or successfully tested approaches in `./spec/`.
 - Maintain clean, modular code with strict domain isolation between character animation controllers and lip-sync blendshapes.
+
+---
+
+Built for Hacktoberfest Hack Day with ❤️.
