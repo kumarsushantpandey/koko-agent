@@ -1,31 +1,38 @@
 import type { VRM } from "@pixiv/three-vrm";
 
+const BLINK_EXPRESSION = "blink";
+
 export class BlinkController {
-  private blinkTimer = 0;
-  private nextBlinkInterval = 3.0;
-  private isBlinking = false;
-  private blinkProgress = 0;
+  private timer = 0;
+  private nextBlink = 2 + Math.random() * 3;
+  private value = 0;
+  private blinking = false;
 
-  update(delta: number, vrm: VRM): void {
-    if (!vrm.expressionManager) return;
+  update(delta: number, vrm: VRM) {
+    this.timer += delta;
 
-    if (!this.isBlinking) {
-      this.blinkTimer += delta;
-      if (this.blinkTimer >= this.nextBlinkInterval) {
-        this.isBlinking = true;
-        this.blinkTimer = 0;
-        this.blinkProgress = 0;
-        this.nextBlinkInterval = 2.0 + Math.random() * 4.0;
+    if (!this.blinking && this.timer >= this.nextBlink) {
+      this.blinking = true;
+      this.timer = 0;
+      this.nextBlink = 2 + Math.random() * 3;
+    }
+
+    if (this.blinking) {
+      this.value += delta * 12;
+      if (this.value >= 1) {
+        this.value = 1;
+        this.blinking = false;
       }
     } else {
-      this.blinkProgress += delta * 12.0; // Fast blink (~150ms)
-      if (this.blinkProgress >= Math.PI) {
-        this.isBlinking = false;
-        vrm.expressionManager.setValue("blink", 0);
-      } else {
-        const weight = Math.sin(this.blinkProgress);
-        vrm.expressionManager.setValue("blink", weight);
+      this.value -= delta * 12;
+      if (this.value < 0) {
+        this.value = 0;
       }
     }
+
+    vrm.expressionManager?.setValue(
+      BLINK_EXPRESSION,
+      this.value
+    );
   }
 }

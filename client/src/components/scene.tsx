@@ -1,40 +1,65 @@
-import React, { Suspense } from "react";
-import { Canvas } from "@react-three/fiber";
-import { OrbitControls } from "@react-three/drei";
-import { Character } from "./character/Character";
+import {
+    Environment,
+} from "@react-three/drei";
+import Character from "./character";
+import {
+    EffectComposer,
+    Bloom,
+} from "@react-three/postprocessing";
+import { useTheme } from "../navigation/ThemeContext";
 
 interface SceneProps {
-  characterId: string;
+    character?: string;
 }
 
-export const Scene: React.FC<SceneProps> = ({ characterId }) => {
-  return (
-    <div className="scene-container">
-      <Canvas
-        camera={{ position: [0, 1.38, 1.15], fov: 30 }}
-        gl={{ antialias: true, alpha: true, powerPreference: "high-performance" }}
-        dpr={[1, 2]}
-      >
-        {/* Anime Character Studio Lighting */}
-        <ambientLight intensity={1.1} />
-        <directionalLight position={[1, 2, 2]} intensity={1.5} color="#ffffff" />
-        <directionalLight position={[-1, 1, 1]} intensity={0.8} color="#e0e7ff" />
-        <directionalLight position={[0, 2, -2]} intensity={1.2} color="#c084fc" />
+export default function Scene({ character = "koko" }: SceneProps) {
+    const { theme } = useTheme();
+    const isDark = theme === "dark";
+    const bgColor = isDark ? "#1A1C1C" : "#F5F5F3";
 
-        <Suspense fallback={null}>
-          <Character characterId={characterId} />
-        </Suspense>
+    return (
+        <>
+            {/* Background matching theme */}
+            <color attach="background" args={[bgColor]} />
 
-        <OrbitControls
-          target={[0, 1.28, 0]}
-          minDistance={0.6}
-          maxDistance={3.5}
-          maxPolarAngle={Math.PI / 2 + 0.1}
-          minPolarAngle={Math.PI / 6}
-          enablePan={false}
-          dampingFactor={0.05}
-        />
-      </Canvas>
-    </div>
-  );
-};
+            {/* Depth fog matching background so ground blends seamlessly */}
+            <fog attach="fog" args={[bgColor, 4, 12]} />
+
+            <Environment
+                preset={isDark ? "city" : "studio"}
+                environmentIntensity={isDark ? 0.35 : 0.65}
+            />
+
+            {/* Soft global illumination */}
+            <ambientLight intensity={isDark ? 0.55 : 0.85} />
+
+            {/* Main light */}
+            <directionalLight
+                position={[2.5, 4, 4]}
+                intensity={isDark ? 1.05 : 1.25}
+            />
+
+            {/* Fill */}
+            <directionalLight
+                position={[-3, 2, 2]}
+                intensity={isDark ? 0.35 : 0.55}
+            />
+
+            {/* Rim */}
+            <directionalLight
+                position={[0, 4, -4]}
+                intensity={isDark ? 0.45 : 0.35}
+            />
+
+            <Character characterId={character} />
+
+            <EffectComposer>
+                <Bloom
+                    intensity={isDark ? 0.2 : 0.12}
+                    luminanceThreshold={0.75}
+                    luminanceSmoothing={0.9}
+                />
+            </EffectComposer>
+        </>
+    );
+}

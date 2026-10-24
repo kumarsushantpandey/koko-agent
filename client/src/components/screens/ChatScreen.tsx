@@ -1,35 +1,17 @@
 import React from "react";
-import { SubtitleOverlay } from "../SubtitleOverlay";
-import { ChatInput } from "../ChatInput";
-import { CHARACTERS } from "../character/types";
+import ChatInput from "../ChatInput";
+import "./ChatScreen.css";
 
 interface ChatScreenProps {
-  characterId: string;
-  provider: string;
-  model: string;
-  toolsEnabled: boolean;
+  character: string;
+  onBackToOverview: () => void;
 }
 
-export const ChatScreen: React.FC<ChatScreenProps> = ({
-  characterId,
-  provider,
-  model,
-  toolsEnabled,
-}) => {
-  const char = CHARACTERS[characterId] || CHARACTERS.koko;
-
+export const ChatScreen: React.FC<ChatScreenProps> = ({ character }) => {
   return (
-    <div className="screen-container chat-screen-view">
-      {/* Subtitles Overlay pinned near upper-middle viewport */}
-      <SubtitleOverlay speakerName={char.displayName} />
-
-      {/* Floating Bottom Chat Input */}
-      <ChatInput
-        placeholder={char.placeholderText}
-        provider={provider}
-        model={model}
-        toolsEnabled={toolsEnabled}
-      />
+    <div className="chat-screen-root" aria-label="Interactive Chat Screen">
+      {/* Persistent floating glassmorphic input bar */}
+      <ChatInput character={character} />
     </div>
   );
 };

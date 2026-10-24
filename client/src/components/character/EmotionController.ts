@@ -1,55 +1,117 @@
 import type { VRM } from "@pixiv/three-vrm";
 import { avatarEvents } from "../../networking/EventBus";
+import type { EmotionEvent } from "../../networking/types";
+import { EMOTIONS, type EmotionName } from "./types";
+
+const ALL_EXPRESSION_KEYS = [
+  ...new Set(
+    Object.values(EMOTIONS).flatMap((preset) =>
+      Object.keys(preset)
+    )
+  ),
+];
+
+const VALID_EMOTION_MAP: Record<string, EmotionName> = {
+  // Exact 6 VRM Emotions
+  neutral: "Neutral",
+  happy: "Happy",
+  sad: "Sad",
+  angry: "Angry",
+  relaxed: "Relaxed",
+  surprised: "Surprised",
+
+  // Out-of-bound emotion aliases mapped to valid VRM emotions
+  blush: "Happy",
+  flustered: "Happy",
+  smirk: "Happy",
+  teasing: "Happy",
+  joy: "Happy",
+
+  annoyed: "Angry",
+  mad: "Angry",
+  furious: "Angry",
+  pouting: "Angry",
+
+  shocked: "Surprised",
+  confused: "Surprised",
+  gasp: "Surprised",
+
+  unhappy: "Sad",
+  crying: "Sad",
+  sulky: "Sad",
+
+  calm: "Relaxed",
+  sleepy: "Relaxed",
+};
 
 export class EmotionController {
-  private currentEmotion: string = "neutral";
-  private targetEmotion: string = "neutral";
-  private weights: Record<string, number> = {
-    happy: 0,
-    sad: 0,
-    angry: 0,
-    surprised: 0,
-    relaxed: 0,
-  };
-  private unsubscribeEmotion: (() => void) | null = null;
-  private unsubscribeSpeechEnd: (() => void) | null = null;
+  private current: EmotionName = "Neutral";
+  private readonly lerpSpeed = 4;
+  private unsubscribers: Array<() => void> = [];
 
   constructor() {
-    this.unsubscribeEmotion = avatarEvents.on("emotion", (data: any) => {
-      const emo = (data?.emotion || data || "neutral").toString().toLowerCase();
-      this.targetEmotion = emo;
-    });
+    const unsubEmotion = avatarEvents.subscribe(
+      "emotion",
+      (event: EmotionEvent) => {
+        if (event.emotion) {
+          this.setEmotionByName(event.emotion);
+        }
+      }
+    );
 
-    this.unsubscribeSpeechEnd = avatarEvents.on("speech_end", () => {
-      this.targetEmotion = "neutral";
-    });
+    const unsubSpeechEnd = avatarEvents.subscribe(
+      "speech_end",
+      () => {
+        console.log("[EmotionController] Speech ended -> resetting facial expression to Neutral");
+        this.setEmotionByName("Neutral");
+      }
+    );
+
+    this.unsubscribers.push(unsubEmotion, unsubSpeechEnd);
   }
 
-  update(delta: number, vrm: VRM): void {
-    if (!vrm.expressionManager) return;
+  setEmotion(name: EmotionName) {
+    this.current = name;
+  }
 
-    const lerpSpeed = delta * 5.0; // Smooth 200ms emotion transitions
+  setEmotionByName(rawName: string) {
+    const key = rawName.trim().toLowerCase();
+    const mapped = VALID_EMOTION_MAP[key] ?? "Neutral";
+    console.log(`[EmotionController] Setting emotion to ${mapped} (raw: ${rawName})`);
+    this.current = mapped;
+  }
 
-    for (const emo of Object.keys(this.weights)) {
-      const targetWeight = emo === this.targetEmotion ? 1.0 : 0.0;
-      this.weights[emo] += (targetWeight - this.weights[emo]) * Math.min(1.0, lerpSpeed);
+  update(delta: number, vrm: VRM) {
+    const manager = vrm.expressionManager;
+    if (!manager) return;
 
-      // Clamp close to 0
-      if (this.weights[emo] < 0.01) {
-        this.weights[emo] = 0;
+    const target = EMOTIONS[this.current] ?? EMOTIONS.Neutral;
+    const step = Math.min(1, delta * this.lerpSpeed);
+
+    for (const name of ALL_EXPRESSION_KEYS) {
+      // Do not touch mouth visemes ("aa", "ih", "ou", "ee", "oh") — mouth is controlled exclusively by LipSyncController
+      if (
+        name === "aa" ||
+        name === "ih" ||
+        name === "ou" ||
+        name === "ee" ||
+        name === "oh"
+      ) {
+        continue;
       }
 
-      // Apply to VRM expression manager
-      try {
-        vrm.expressionManager.setValue(emo as any, this.weights[emo]);
-      } catch (e) {
-        // Model might not have this specific custom expression
-      }
+      const desired =
+        target[name as keyof typeof target] ?? 0;
+      const current = manager.getValue(name) ?? 0;
+      const next =
+        current + (desired - current) * step;
+
+      manager.setValue(name, next);
     }
   }
 
-  destroy(): void {
-    if (this.unsubscribeEmotion) this.unsubscribeEmotion();
-    if (this.unsubscribeSpeechEnd) this.unsubscribeSpeechEnd();
+  dispose() {
+    this.unsubscribers.forEach((unsub) => unsub());
+    this.unsubscribers = [];
   }
 }

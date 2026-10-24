@@ -1,13 +1,13 @@
 import { defineConfig } from 'vite'
 import react from '@vitejs/plugin-react'
+import tailwindcss from '@tailwindcss/vite'
 
-// https://vitejs.dev/config/
+// https://vite.dev/config/
 export default defineConfig({
-  plugins: [react()],
+  plugins: [react(), tailwindcss()],
   server: {
-    port: 5173,
     watch: {
-      ignored: ['**/*.vrm', '**/characters/**', '**/public/characters/**', '**/animations/**'],
+      ignored: ['**/*.vrm', '**/characters/**', '**/public/characters/**'],
     },
   },
 })

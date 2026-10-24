@@ -1,0 +1,520 @@
+.gallery-screen-root {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  pointer-events: none; /* Let canvas underneath receive drag events */
+  z-index: 10;
+  box-sizing: border-box;
+}
+
+/* ─── Rotate Hint (Top Right) ───────────────────────────────── */
+.gallery-rotate-hint {
+  position: absolute;
+  top: 24px;
+  right: 28px;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 12px;
+  color: var(--text-muted);
+  background: var(--bg-surface-elevated);
+  padding: 6px 12px;
+  border-radius: 8px;
+  border: 1px solid var(--border-color);
+  pointer-events: none;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+}
+
+/* ─── Left Inspector Modal Panel ────────────────────────────── */
+.gallery-info-panel {
+  position: absolute;
+  top: 24px;
+  left: 10px;
+  width: 336px;
+  background-color: var(--bg-surface-elevated);
+  border: 1px solid var(--border-color);
+  border-radius: 18px;
+  padding: 18px;
+  display: flex;
+  flex-direction: column;
+  gap: 13px;
+  pointer-events: auto;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.25);
+  box-sizing: border-box;
+  max-height: calc(100vh - 48px);
+  overflow-y: auto;
+  scrollbar-width: none;
+  transition: background-color 0.2s ease, border-color 0.2s ease;
+}
+
+.gallery-info-panel::-webkit-scrollbar {
+  display: none;
+}
+
+.gallery-header-section {
+  display: flex;
+  flex-direction: column;
+}
+
+.gallery-category-tag {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 1.2px;
+  color: var(--text-muted);
+  text-transform: uppercase;
+}
+
+.gallery-character-name {
+  font-size: 26px;
+  font-weight: 800;
+  color: var(--text-primary);
+  margin: 6px 0 2px 0;
+  line-height: 1.15;
+  letter-spacing: -0.5px;
+}
+
+.gallery-character-subtitle {
+  font-size: 12px;
+  color: var(--text-secondary);
+  font-weight: 400;
+  line-height: 1.35;
+}
+
+/* ─── Quick Actions Row ─────────────────────────────────────── */
+.gallery-action-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-top: 2px;
+}
+
+.gallery-quick-btn {
+  flex: 1;
+  height: 34px;
+  border-radius: 8px;
+  background-color: var(--bg-surface);
+  border: 1px solid var(--border-color);
+  color: var(--text-primary);
+  font-size: 12px;
+  font-weight: 600;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  cursor: pointer;
+  transition: background 0.15s ease, border-color 0.15s ease;
+}
+
+.gallery-quick-btn:hover {
+  background-color: var(--hover-bg);
+  border-color: var(--accent);
+}
+
+.gallery-stop-btn {
+  flex: 1;
+  height: 34px;
+  border-radius: 8px;
+  background-color: rgba(224, 90, 71, 0.12);
+  border: 1px solid rgba(224, 90, 71, 0.35);
+  color: #ff725c;
+  font-size: 12px;
+  font-weight: 600;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+
+.gallery-stop-btn:hover {
+  background-color: rgba(224, 90, 71, 0.22);
+  border-color: rgba(224, 90, 71, 0.6);
+}
+
+/* ─── Navigation Tabs ───────────────────────────────────────── */
+.gallery-tabs-row {
+  display: flex;
+  gap: 16px;
+  border-bottom: 1px solid var(--border-subtle);
+  padding-bottom: 6px;
+}
+
+.gallery-tab {
+  background: transparent;
+  border: none;
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--text-muted);
+  cursor: pointer;
+  padding: 0 2px 6px 2px;
+  position: relative;
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  transition: color 0.15s ease;
+}
+
+.gallery-tab:hover {
+  color: var(--text-secondary);
+}
+
+.gallery-tab.active {
+  color: var(--text-primary);
+}
+
+.gallery-tab.active::after {
+  content: "";
+  position: absolute;
+  bottom: -7px;
+  left: 0;
+  right: 0;
+  height: 2px;
+  background-color: var(--text-primary);
+  border-radius: 2px;
+}
+
+/* ─── Tab Panes & Banners ───────────────────────────────────── */
+.gallery-tab-pane {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  animation: gallery-fade 0.18s ease;
+}
+
+@keyframes gallery-fade {
+  from {
+    opacity: 0;
+    transform: translateY(3px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.gallery-status-banner {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 6px 10px;
+  background-color: var(--bg-surface);
+  border: 1px solid var(--border-subtle);
+  border-radius: 8px;
+  font-size: 11px;
+}
+
+.gallery-status-label {
+  color: var(--text-muted);
+  font-weight: 500;
+}
+
+.gallery-status-val {
+  color: var(--text-primary);
+  font-weight: 700;
+}
+
+/* ─── Motion / Animation Cards Grid ─────────────────────────── */
+.gallery-items-grid {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  max-height: 380px;
+  overflow-y: auto;
+  padding-right: 2px;
+  scrollbar-width: thin;
+}
+
+.gallery-item-card {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 8px 10px;
+  background-color: var(--bg-surface);
+  border: 1px solid var(--border-subtle);
+  border-radius: 10px;
+  cursor: pointer;
+  text-align: left;
+  transition: all 0.15s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.gallery-item-card:hover {
+  background-color: var(--hover-bg);
+  border-color: var(--border-color);
+  transform: translateX(2px);
+}
+
+.gallery-item-card.active {
+  background-color: var(--nav-active-bg);
+  border-color: var(--accent-indicator);
+  box-shadow: 0 0 0 1px var(--accent-indicator);
+}
+
+.gallery-item-main {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  min-width: 0;
+}
+
+.gallery-item-icon {
+  width: 28px;
+  height: 28px;
+  border-radius: 7px;
+  background: var(--bg-surface-elevated);
+  border: 1px solid var(--border-subtle);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--text-secondary);
+  flex-shrink: 0;
+  transition: color 0.15s ease;
+}
+
+.gallery-item-card.active .gallery-item-icon {
+  color: var(--accent-indicator);
+  border-color: var(--accent-indicator);
+}
+
+.gallery-item-text {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+}
+
+.gallery-item-title {
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--text-primary);
+  line-height: 1.2;
+}
+
+.gallery-item-desc {
+  font-size: 11px;
+  color: var(--text-muted);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  margin-top: 2px;
+}
+
+.gallery-item-card.active .gallery-item-desc {
+  color: var(--text-secondary);
+}
+
+.gallery-item-check {
+  color: var(--accent-indicator);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  margin-left: 6px;
+}
+
+/* ─── Emotions Grid ─────────────────────────────────────────── */
+.gallery-emotions-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 8px;
+}
+
+.gallery-emotion-card {
+  position: relative;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 10px 12px;
+  background-color: var(--bg-surface);
+  border: 1px solid var(--border-subtle);
+  border-radius: 10px;
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+
+.gallery-emotion-card:hover {
+  background-color: var(--hover-bg);
+  border-color: var(--border-color);
+}
+
+.gallery-emotion-card.active {
+  background-color: var(--nav-active-bg);
+  border-color: var(--accent-indicator);
+  box-shadow: 0 0 0 1px var(--accent-indicator);
+}
+
+.gallery-emotion-emoji {
+  font-size: 18px;
+  line-height: 1;
+}
+
+.gallery-emotion-name {
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--text-primary);
+}
+
+.gallery-emotion-pill {
+  margin-left: auto;
+  color: var(--accent-indicator);
+  display: flex;
+  align-items: center;
+}
+
+/* ─── Pose Section & Sliders ────────────────────────────────── */
+.gallery-pose-header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 8px;
+}
+
+.gallery-pose-info {
+  display: flex;
+  flex-direction: column;
+}
+
+.gallery-pose-title {
+  font-size: 13px;
+  font-weight: 700;
+  color: var(--text-primary);
+}
+
+.gallery-pose-hint {
+  font-size: 11px;
+  color: var(--text-muted);
+  margin-top: 2px;
+  line-height: 1.3;
+}
+
+.gallery-pose-reset-btn {
+  background: var(--bg-surface);
+  border: 1px solid var(--border-color);
+  border-radius: 6px;
+  color: var(--text-secondary);
+  font-size: 11px;
+  font-weight: 600;
+  padding: 4px 8px;
+  cursor: pointer;
+  transition: all 0.15s ease;
+  flex-shrink: 0;
+}
+
+.gallery-pose-reset-btn:hover {
+  color: var(--text-primary);
+  background-color: var(--hover-bg);
+  border-color: var(--accent);
+}
+
+.gallery-sliders-group {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  background-color: var(--bg-surface);
+  border: 1px solid var(--border-subtle);
+  border-radius: 10px;
+  padding: 12px 14px;
+}
+
+.gallery-slider-row {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.gallery-slider-label-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.gallery-slider-label {
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--text-secondary);
+}
+
+.gallery-slider-value {
+  font-size: 11px;
+  font-weight: 700;
+  color: var(--text-primary);
+  background-color: var(--bg-surface-elevated);
+  border: 1px solid var(--border-subtle);
+  padding: 2px 6px;
+  border-radius: 4px;
+  min-width: 32px;
+  text-align: right;
+  font-variant-numeric: tabular-nums;
+}
+
+.gallery-range-input {
+  width: 100%;
+  height: 6px;
+  border-radius: 3px;
+  background: var(--border-subtle);
+  outline: none;
+  cursor: pointer;
+  accent-color: var(--accent-indicator);
+}
+
+.gallery-pose-presets {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 11px;
+}
+
+.gallery-presets-label {
+  color: var(--text-muted);
+  font-weight: 500;
+}
+
+.gallery-preset-pill {
+  background: var(--bg-surface);
+  border: 1px solid var(--border-subtle);
+  border-radius: 6px;
+  color: var(--text-secondary);
+  font-size: 11px;
+  font-weight: 500;
+  padding: 3px 8px;
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+
+.gallery-preset-pill:hover {
+  background: var(--hover-bg);
+  color: var(--text-primary);
+  border-color: var(--border-color);
+}
+
+/* ─── Model Info Meta List ──────────────────────────────────── */
+.gallery-meta-list {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  background-color: var(--bg-surface);
+  border: 1px solid var(--border-subtle);
+  border-radius: 10px;
+  padding: 12px 14px;
+}
+
+.gallery-meta-item {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  font-size: 12px;
+}
+
+.gallery-meta-label {
+  color: var(--text-muted);
+  font-weight: 500;
+}
+
+.gallery-meta-val {
+  color: var(--text-primary);
+  font-weight: 600;
+}

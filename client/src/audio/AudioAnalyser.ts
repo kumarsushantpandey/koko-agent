@@ -1,48 +1,101 @@
+/**
+ * AudioAnalyser
+ *
+ * Reads live audio samples from the Web Audio AnalyserNode and
+ * computes smoothed RMS and frequency band spectrum values to drive VRM mouth expressions.
+ */
+
+import { audioPlayer } from "./AudioPlayer";
+
+export interface AudioSpectrum {
+  rms: number;
+  low: number;  // 150 - 750 Hz (formant F1, open vowels like "aa")
+  mid: number;  // 750 - 2400 Hz (formant F2, front vowels like "ee"/"ih")
+  high: number; // 2400 - 6000 Hz (sibilants & high consonants)
+}
+
 export class AudioAnalyser {
-  private audioContext: AudioContext | null = null;
-  private analyser: AnalyserNode | null = null;
-  private dataArray: Uint8Array | null = null;
+  private readonly _node: AnalyserNode;
+  private readonly _timeBuffer: Float32Array<ArrayBuffer>;
+  private readonly _freqBuffer: Uint8Array<ArrayBuffer>;
+  private _smoothedRms = 0;
 
-  private ensureContext(): { ctx: AudioContext; analyser: AnalyserNode } {
-    if (!this.audioContext) {
-      const AudioCtx = window.AudioContext || (window as any).webkitAudioContext;
-      this.audioContext = new AudioCtx();
-    }
-    if (this.audioContext.state === "suspended") {
-      this.audioContext.resume().catch(() => {});
-    }
-    if (!this.analyser) {
-      this.analyser = this.audioContext.createAnalyser();
-      this.analyser.fftSize = 512;
-      this.analyser.smoothingTimeConstant = 0.8;
-      this.dataArray = new Uint8Array(this.analyser.frequencyBinCount);
-    }
-    return { ctx: this.audioContext, analyser: this.analyser };
-  }
-
-  public getContext(): AudioContext {
-    return this.ensureContext().ctx;
-  }
-
-  public getAnalyserNode(): AnalyserNode {
-    return this.ensureContext().analyser;
+  constructor(node: AnalyserNode) {
+    this._node = node;
+    this._timeBuffer = new Float32Array(node.fftSize) as Float32Array<ArrayBuffer>;
+    this._freqBuffer = new Uint8Array(node.frequencyBinCount) as Uint8Array<ArrayBuffer>;
   }
 
   /**
-   * Computes the Root Mean Square (RMS) energy from frequency data (0.0 to 1.0)
-   * for zero-latency audio-reactive mouth movement.
+   * Sample the analyser, compute RMS, and apply exponential smoothing.
+   * Call once per animation frame.
    */
-  public getRMS(): number {
-    if (!this.analyser || !this.dataArray) {
-      return 0.0;
+  update(damping = 0.35): number {
+    this._node.getFloatTimeDomainData(this._timeBuffer);
+
+    let sumSq = 0;
+    const n = this._timeBuffer.length;
+
+    for (let i = 0; i < n; i++) {
+      sumSq += this._timeBuffer[i] * this._timeBuffer[i];
     }
-    this.analyser.getByteFrequencyData(this.dataArray as any);
-    let sum = 0;
-    for (let i = 0; i < this.dataArray.length; i++) {
-      sum += this.dataArray[i] * this.dataArray[i];
+
+    const rms = Math.sqrt(sumSq / n);
+    this._smoothedRms += (rms - this._smoothedRms) * damping;
+
+    return this._smoothedRms;
+  }
+
+  /**
+   * Samples live time-domain and frequency spectrum energy.
+   */
+  getSpectrum(damping = 0.35): AudioSpectrum {
+    const rms = this.update(damping);
+
+    this._node.getByteFrequencyData(this._freqBuffer);
+    const sampleRate = this._node.context.sampleRate || 44100;
+    const binHz = sampleRate / this._node.fftSize;
+
+    let lowSum = 0, lowCount = 0;
+    let midSum = 0, midCount = 0;
+    let highSum = 0, highCount = 0;
+
+    const len = this._freqBuffer.length;
+    for (let i = 0; i < len; i++) {
+      const hz = i * binHz;
+      const val = this._freqBuffer[i] / 255.0;
+
+      if (hz >= 150 && hz <= 750) {
+        lowSum += val;
+        lowCount++;
+      } else if (hz > 750 && hz <= 2400) {
+        midSum += val;
+        midCount++;
+      } else if (hz > 2400 && hz <= 6000) {
+        highSum += val;
+        highCount++;
+      }
     }
-    return Math.sqrt(sum / this.dataArray.length) / 255.0;
+
+    return {
+      rms,
+      low: lowCount > 0 ? lowSum / lowCount : 0,
+      mid: midCount > 0 ? midSum / midCount : 0,
+      high: highCount > 0 ? highSum / highCount : 0,
+    };
+  }
+
+  /** The last smoothed RMS value (0.0 – ~0.3 for speech). */
+  get smoothed(): number {
+    return this._smoothedRms;
+  }
+
+  /** Reset to silence (call on speech interrupt). */
+  reset() {
+    this._smoothedRms = 0;
   }
 }
 
-export const audioAnalyser = new AudioAnalyser();
+// Singleton — shares the AnalyserNode from the global AudioPlayer.
+export const audioAnalyser = new AudioAnalyser(audioPlayer.analyser);
+

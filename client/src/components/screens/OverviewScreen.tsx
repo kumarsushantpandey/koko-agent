@@ -1,89 +1,191 @@
-import React from "react";
-import { CHARACTERS, type CharacterDefinition } from "../character/types";
-import { IconSparkles, IconMessageCircle, IconCheck } from "@tabler/icons-react";
+import React, { useState } from "react";
+import {
+  IconPencil,
+  IconArrowRight,
+  IconPlus,
+  IconCamera,
+} from "@tabler/icons-react";
+import { CHARACTER_LIST, getCharacterConfig } from "../character";
+import "./OverviewScreen.css";
 
 interface OverviewScreenProps {
-  activeCharacterId: string;
-  onSelectCharacter: (id: string) => void;
+  character: string;
   onStartChat: () => void;
+  onOpenSettings?: () => void;
+  onSelectCharacter?: (characterId: string) => void;
 }
 
 export const OverviewScreen: React.FC<OverviewScreenProps> = ({
-  activeCharacterId,
-  onSelectCharacter,
+  character,
   onStartChat,
+  onOpenSettings,
+  onSelectCharacter,
 }) => {
-  const charactersList = Object.values(CHARACTERS);
-  const selectedChar: CharacterDefinition =
-    CHARACTERS[activeCharacterId] || CHARACTERS.koko;
+  const [activeTab, setActiveTab] = useState<"overview" | "voice">("overview");
+  const [voiceEngine, setVoiceEngine] = useState<"fish" | "sovits">("fish");
+
+  const config = getCharacterConfig(character);
 
   return (
-    <div className="screen-container overview-screen-view animate-fade-in">
-      <div className="overview-content glass-panel">
-        <header className="overview-header">
-          <div className="category-tag">
-            <span className="tag-number">{selectedChar.tagNumber}</span>
-            <span className="tag-name">{selectedChar.categoryTag}</span>
+    <div className="overview-screen-root" aria-label="Character Overview Screen">
+      {/* ─── Left Character Information Panel ──────────────────────────────── */}
+      <aside className="overview-info-panel" aria-label="Character Details">
+        <div className="panel-header-section">
+          <div className="panel-category-tag">
+            <span>{config.categoryTag}</span>
+            <span>{config.tagNumber}</span>
           </div>
-          <h1 className="overview-title">Companion Deck</h1>
-          <p className="overview-desc">
-            Choose your interactive 3D anime companion. Powered by real-time WebGL, audio-reactive lip-sync, and agentic tools.
-          </p>
-        </header>
+          <h1 className="panel-character-name">{config.name}</h1>
+          <div className="panel-character-subtitle">{config.subtitle}</div>
+        </div>
 
-        {/* Character Selection Cards */}
-        <div className="companion-deck-grid">
-          {charactersList.map((char) => {
-            const isSelected = char.id === activeCharacterId;
+        <div className="panel-action-row">
+          <button
+            type="button"
+            className="panel-edit-btn"
+            title="Edit character profile"
+            onClick={() => { }}
+          >
+            <IconPencil size={15} stroke={1.8} />
+            <span>Edit character</span>
+          </button>
+          <button
+            type="button"
+            className="panel-icon-btn"
+            title="Take snapshot"
+            onClick={() => { }}
+          >
+            <IconCamera size={16} stroke={1.8} />
+          </button>
+        </div>
+
+        {/* Overview / Voice tabs */}
+        <div className="panel-tabs-row" role="tablist">
+          <button
+            type="button"
+            role="tab"
+            aria-selected={activeTab === "overview"}
+            className={`panel-tab ${activeTab === "overview" ? "active" : ""}`}
+            onClick={() => setActiveTab("overview")}
+          >
+            Overview
+          </button>
+          <button
+            type="button"
+            role="tab"
+            aria-selected={activeTab === "voice"}
+            className={`panel-tab ${activeTab === "voice" ? "active" : ""}`}
+            onClick={() => setActiveTab("voice")}
+          >
+            Voice
+          </button>
+        </div>
+
+        {/* Overview tab description */}
+        {activeTab === "overview" && (
+          <div className="panel-overview-desc-box">
+            <p className="panel-character-desc">{config.description}</p>
+            <div className="panel-character-pills">
+              <span className="panel-pill">{config.role}</span>
+              <span className="panel-pill">Active VRM</span>
+            </div>
+          </div>
+        )}
+
+        {/* Personality & model link -> takes user to Settings page */}
+        <div
+          className="panel-nav-row"
+          onClick={onOpenSettings}
+          role="button"
+          tabIndex={0}
+          onKeyDown={(e) => e.key === "Enter" && onOpenSettings?.()}
+          title="Open Settings to configure Personality & AI Model"
+        >
+          <span>Personality & model</span>
+          <IconArrowRight size={14} stroke={2} />
+        </div>
+
+        {/* Voice engine configuration (Voice Tab) */}
+        {activeTab === "voice" && (
+          <div className="panel-voice-section">
+            <div className="panel-voice-header">
+              <span className="panel-voice-title">Voice</span>
+              <span className="panel-voice-config">Configure</span>
+            </div>
+
+            <div className="panel-voice-toggles">
+              <button
+                type="button"
+                className={`panel-voice-toggle-btn ${voiceEngine === "fish" ? "active" : ""}`}
+                onClick={() => setVoiceEngine("fish")}
+              >
+                Fish Audio
+              </button>
+              <button
+                type="button"
+                className={`panel-voice-toggle-btn ${voiceEngine === "sovits" ? "active" : ""}`}
+                onClick={() => setVoiceEngine("sovits")}
+              >
+                GPT-SoVITS
+              </button>
+            </div>
+
+            <p className="panel-voice-caption">
+              {voiceEngine === "fish"
+                ? "Fish Audio: High-speed real-time synthetic voice stream."
+                : "GPT-SoVITS: Voice reference model synthesized locally."}
+            </p>
+          </div>
+        )}
+
+        {/* Primary CTA */}
+        <button
+          type="button"
+          className="panel-start-chat-btn"
+          onClick={onStartChat}
+        >
+          <span>Start chat with {config.displayName}</span>
+          <IconArrowRight size={16} stroke={2.5} />
+        </button>
+      </aside>
+
+      {/* ─── Bottom Character Selector Row ─────────────────────────────────── */}
+      <div className="overview-bottom-selector" aria-label="Character Selector">
+        <div className="selector-cards-row">
+          {CHARACTER_LIST.map((charItem) => {
+            const isSelected = character.toLowerCase() === charItem.id.toLowerCase();
             return (
               <div
-                key={char.id}
-                className={`companion-card glass-panel ${isSelected ? "selected" : ""}`}
-                onClick={() => onSelectCharacter(char.id)}
+                key={charItem.id}
+                className="selector-card-wrapper"
+                role="button"
+                tabIndex={0}
+                onClick={() => onSelectCharacter?.(charItem.id)}
+                onKeyDown={(e) => (e.key === "Enter" || e.key === " ") && onSelectCharacter?.(charItem.id)}
+                title={`Select ${charItem.name}`}
+                aria-pressed={isSelected}
               >
-                <div className="companion-avatar-wrapper">
-                  <img src={char.avatarUrl} alt={char.name} className="companion-avatar-img" />
-                  {isSelected && (
-                    <div className="selected-indicator-badge">
-                      <IconCheck size={16} />
-                    </div>
-                  )}
+                <div className={`selector-card ${isSelected ? "selected" : ""}`}>
+                  <img
+                    src={charItem.avatarUrl}
+                    alt={charItem.name}
+                    className="selector-card-img"
+                  />
                 </div>
-                <div className="companion-card-info">
-                  <div className="card-top-row">
-                    <span className="card-tag">{char.categoryTag}</span>
-                    <span className="card-number">{char.tagNumber}</span>
-                  </div>
-                  <h3 className="card-name">{char.displayName}</h3>
-                  <p className="card-subtitle">{char.subtitle}</p>
-                </div>
+                <span className="selector-card-name">{charItem.displayName}</span>
               </div>
             );
           })}
         </div>
 
-        {/* Selected Companion Details & Start Chat Action */}
-        <div className="companion-hero-detail glass-panel">
-          <div className="hero-text-block">
-            <div className="role-badge">
-              <IconSparkles size={16} />
-              <span>{selectedChar.role}</span>
-            </div>
-            <h2 className="hero-name">{selectedChar.name}</h2>
-            <p className="hero-description">{selectedChar.description}</p>
-          </div>
-
-          <div className="hero-action-block">
-            <button
-              type="button"
-              className="start-chat-btn"
-              onClick={onStartChat}
-            >
-              <IconMessageCircle size={20} />
-              <span>Start Chat with {selectedChar.displayName}</span>
-            </button>
-          </div>
-        </div>
+        <button
+          type="button"
+          className="selector-add-btn"
+          title="Add a new character"
+        >
+          <IconPlus size={14} stroke={2} />
+          <span>Add character</span>
+        </button>
       </div>
     </div>
   );

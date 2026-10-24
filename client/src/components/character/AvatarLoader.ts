@@ -1,51 +1,55 @@
 import * as THREE from "three";
-import { GLTFLoader } from "three/examples/jsm/loaders/GLTFLoader.js";
-import { VRMLoaderPlugin, VRM } from "@pixiv/three-vrm";
+import {
+  type GLTF,
+  GLTFLoader,
+} from "three/examples/jsm/loaders/GLTFLoader.js";
+import { VRM, VRMLoaderPlugin } from "@pixiv/three-vrm";
+import { DefaultPoseController } from "./DefaultPoseController";
 
-export interface LoadedAvatar {
+export type LoadedAvatar = {
   vrm: VRM;
   mixer: THREE.AnimationMixer;
-}
+};
 
-export async function loadAvatar(url: string): Promise<LoadedAvatar> {
-  const loader = new GLTFLoader();
-  loader.register((parser) => new VRMLoaderPlugin(parser));
+export async function loadAvatar(
+  url: string
+): Promise<LoadedAvatar> {
+  const vrmLoader = new GLTFLoader();
 
-  const gltf = await loader.loadAsync(url);
-  const vrm = gltf.userData.vrm as VRM;
-  if (!vrm) {
-    throw new Error(`VRM payload missing in ${url}`);
+  vrmLoader.register(
+    (parser) => new VRMLoaderPlugin(parser)
+  );
+
+  let vrmGltf: GLTF;
+  try {
+    vrmGltf = (await vrmLoader.loadAsync(url)) as GLTF;
+  } catch (err) {
+    if (url === "/characters/default.vrm") {
+      try {
+        vrmGltf = (await vrmLoader.loadAsync("/character.vrm")) as GLTF;
+      } catch {
+        throw err;
+      }
+    } else {
+      throw err;
+    }
   }
 
-  // Rotate VRM model 180 degrees to face the camera
+  const vrm = vrmGltf.userData.vrm as VRM;
+  if (!vrm) {
+    throw new Error(`GLTF asset at ${url} does not contain valid VRM data`);
+  }
+
   vrm.scene.rotation.y = Math.PI;
+  vrm.scene.position.set(0, 0, 0);
+
+  try {
+    new DefaultPoseController().apply(vrm);
+  } catch (err) {
+    console.warn("Could not apply default pose:", err);
+  }
 
   const mixer = new THREE.AnimationMixer(vrm.scene);
-  return { vrm, mixer };
-}
 
-export function disposeAvatar(vrm: any, mixer?: THREE.AnimationMixer) {
-  try {
-    if (mixer) {
-      mixer.stopAllAction();
-      if (vrm?.scene) {
-        mixer.uncacheRoot(vrm.scene);
-      }
-    }
-    const root = vrm?.scene || vrm;
-    root?.traverse?.((obj: any) => {
-      if (obj.geometry) {
-        obj.geometry.dispose();
-      }
-      if (obj.material) {
-        if (Array.isArray(obj.material)) {
-          obj.material.forEach((m: any) => m?.dispose?.());
-        } else {
-          obj.material?.dispose?.();
-        }
-      }
-    });
-  } catch (err) {
-    console.warn("[Avatar] Cleanup warning:", err);
-  }
+  return { vrm, mixer };
 }

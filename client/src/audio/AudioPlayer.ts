@@ -1,65 +1,146 @@
-import { audioAnalyser } from "./AudioAnalyser";
+/**
+ * AudioPlayer / AudioEngine
+ *
+ * Web Audio API Engine powering real-time PCM audio playback via AudioWorklet.
+ *
+ * Audio Graph:
+ *   AudioWorkletNode ("pcm-processor")
+ *             ↓
+ *          GainNode        ← volume control
+ *             ↓
+ *        AnalyserNode      ← live RMS samples for VRM LipSync
+ *             ↓
+ *        Destination
+ *
+ * All streaming audio is raw Int16 LE PCM streamed to the AudioWorklet.
+ * Zero MP3 decoding, zero decodeAudioData(), zero codec boundary artifacts.
+ */
+
+import { PCMPlayer } from "./PCMPlayer";
+import { PCMQueue } from "./PCMQueue";
 
 export class AudioPlayer {
-  private currentAudio: HTMLAudioElement | null = null;
-  private sourceNode: MediaElementAudioSourceNode | null = null;
-  private isSourceConnected = false;
+  private readonly context: AudioContext;
+  private readonly _gain: GainNode;
+  private readonly _analyser: AnalyserNode;
 
-  async play(dataUri: string): Promise<void> {
-    this.stop();
+  private readonly pcmPlayer: PCMPlayer;
+  private readonly pcmQueue: PCMQueue;
 
-    const ctx = audioAnalyser.getContext();
-    if (ctx.state === "suspended") {
-      await ctx.resume().catch(() => {});
+  constructor() {
+    this.context = new AudioContext({ latencyHint: "interactive" });
+
+    this._gain = this.context.createGain();
+    this._analyser = this.context.createAnalyser();
+    this._analyser.fftSize = 2048;
+    this._analyser.smoothingTimeConstant = 0;
+
+    // Connect permanent graph: GainNode -> AnalyserNode -> Destination
+    this._gain.connect(this._analyser);
+    this._analyser.connect(this.context.destination);
+
+    this.pcmPlayer = new PCMPlayer(this.context, this._gain);
+    this.pcmQueue = new PCMQueue(this.pcmPlayer);
+
+    console.log(`[AudioEngine] Initialized at ${this.context.sampleRate} Hz`);
+  }
+
+  private audioElement: HTMLAudioElement | null = null;
+  private mediaSource: MediaElementAudioSourceNode | null = null;
+
+  /**
+   * Push incoming raw Int16 PCM ArrayBuffer received from WebSocket.
+   */
+  push(chunk: ArrayBuffer): void {
+    this.ensureRunning();
+    this.pcmQueue.push(chunk);
+  }
+
+  /**
+   * Play an audio URL (e.g. data:audio/wav;base64,...) connected directly to the GainNode -> AnalyserNode.
+   */
+  playAudioUrl(
+    url: string,
+    onProgress?: (currentTime: number, duration: number) => void,
+    onEnded?: () => void,
+  ): void {
+    this.ensureRunning();
+
+    if (!this.audioElement) {
+      this.audioElement = new Audio();
+      this.mediaSource = this.context.createMediaElementSource(this.audioElement);
+      this.mediaSource.connect(this._gain);
     }
 
-    return new Promise((resolve) => {
-      const audio = new Audio(dataUri);
-      this.currentAudio = audio;
+    this.audioElement.pause();
+    this.audioElement.src = url;
 
-      audio.onended = () => {
-        this.currentAudio = null;
-        resolve();
-      };
-
-      audio.onerror = (err) => {
-        console.warn("Audio playback error:", err);
-        this.currentAudio = null;
-        resolve();
-      };
-
-      // Connect MediaElementSourceNode to AnalyserNode & Destination
-      try {
-        if (!this.sourceNode || this.currentAudio !== audio) {
-          const source = ctx.createMediaElementSource(audio);
-          source.connect(audioAnalyser.getAnalyserNode());
-          audioAnalyser.getAnalyserNode().connect(ctx.destination);
-          this.sourceNode = source;
-          this.isSourceConnected = true;
-        }
-      } catch (e) {
-        // Fallback for browsers with strict CORS/source node reuse restrictions
-        if (!this.isSourceConnected) {
-          audioAnalyser.getAnalyserNode().connect(ctx.destination);
-        }
+    this.audioElement.ontimeupdate = () => {
+      if (this.audioElement && onProgress) {
+        onProgress(this.audioElement.currentTime, this.audioElement.duration || 1);
       }
+    };
 
-      audio.play().catch((err) => {
-        console.warn("Audio autoplay blocked or failed:", err);
-        resolve();
-      });
+    this.audioElement.onended = () => {
+      if (onEnded) onEnded();
+    };
+
+    this.audioElement.play().catch((err) => {
+      console.warn("[AudioPlayer] play error:", err);
     });
   }
 
+  /**
+   * Stop audio and flush all buffers immediately (interrupt).
+   */
   stop(): void {
-    if (this.currentAudio) {
-      try {
-        this.currentAudio.pause();
-        this.currentAudio.currentTime = 0;
-      } catch (e) {}
-      this.currentAudio = null;
+    if (this.audioElement) {
+      this.audioElement.pause();
+      this.audioElement.currentTime = 0;
     }
+    this.pcmQueue.flush();
+    console.log("[AudioEngine] Flushed audio queue.");
+  }
+
+  async resume(): Promise<void> {
+    this.ensureRunning();
+    await this.pcmPlayer.init();
+  }
+
+  private ensureRunning(): void {
+    if (this.context.state === "suspended") {
+      this.context.resume().catch(() => {});
+    }
+  }
+
+  get analyser(): AnalyserNode {
+    return this._analyser;
+  }
+
+  get currentTime(): number {
+    return this.context.currentTime;
+  }
+
+  get scheduledEndTime(): number {
+    return this.context.currentTime;
+  }
+
+  get playbackTime(): number {
+    return this.pcmPlayer.playbackTime;
+  }
+
+  get isPlaying(): boolean {
+    return this.pcmPlayer.isPlaying;
+  }
+
+  onProgress(listener: (time: number) => void): () => void {
+    return this.pcmPlayer.onProgress(listener);
+  }
+
+  get sampleRate(): number {
+    return this.context.sampleRate;
   }
 }
 
 export const audioPlayer = new AudioPlayer();
+export const audioEngine = audioPlayer;

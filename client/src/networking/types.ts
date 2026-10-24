@@ -1,74 +1,177 @@
-export interface ToolSummary {
-  name: string;
-  description: string;
-  parameters: Record<string, any>;
-  aliases?: string[];
+export type Viseme =
+  | "aa"
+  | "ih"
+  | "ou"
+  | "ee"
+  | "oh"
+  | "sil";
+
+export interface VisemeFrame {
+  t: number;
+  viseme: Viseme;
+  weight: number;
 }
 
-export interface ModelOption {
+export interface SpeechTimeline {
   id: string;
-  name: string;
-  context?: string;
-  tools?: boolean;
-  vision?: boolean;
-}
-
-export interface ProviderOption {
-  id: string;
-  name: string;
-  base_url?: string;
-  models: ModelOption[];
-}
-
-export interface ConfigEvent {
-  type: "config";
-  assistant_name: string;
-  chat_input_enabled: boolean;
-  llm_provider: string;
-  llm_model: string;
-  available_llm_providers: ProviderOption[];
-  tool_calling_enabled: boolean;
-  tool_calling_supported: boolean;
-  vision_supported: boolean;
-  max_tool_calls: number;
-  available_tools: ToolSummary[];
-  api_keys_configured: {
-    mistral: boolean;
-    llama_cpp: boolean;
-    tavily: boolean;
-    fish: boolean;
-  };
-}
-
-export interface SpeechSegmentEvent {
-  type: "speech_segment";
+  created_at: number;
+  start_at: number;
   text: string;
-  raw_text?: string;
-  audio: string; // base64 WAV Data URI
-  emotion?: string;
-  segment_index: number;
-  is_last: boolean;
+  duration: number;
+  frames: VisemeFrame[];
 }
 
 export interface TranscriptEvent {
   type: "transcript";
   text: string;
-  is_final?: boolean;
 }
 
-export interface ToolTelemetryEvent {
-  type: "tool_start" | "tool_end";
-  tool_name: string;
+export interface SpeechEvent {
+  delay_ms: number;
+  type: "speech";
+  timeline: SpeechTimeline;
 }
 
-export type AvatarSocketEvent =
-  | ConfigEvent
-  | SpeechSegmentEvent
+
+export interface EmotionEvent {
+  type: "emotion";
+  emotion: string;
+}
+
+export interface AnimationEvent {
+  type: "animation";
+  animation: string;
+}
+
+export interface ThinkingStartEvent {
+  type: "thinking_start";
+}
+
+export interface ThinkingEndEvent {
+  type: "thinking_end";
+}
+
+export interface SpeechStartEvent {
+  type: "speech_start";
+}
+
+export interface SpeechEndEvent {
+  type: "speech_end";
+}
+
+export interface SubtitleEvent {
+  type: "subtitle";
+  text: string;
+}
+
+export interface SpeechSegmentEvent {
+  type: "speech_segment";
+  text: string;
+  audio: string;
+  is_last: boolean;
+  segment_index: number;
+  total_segments: number;
+  emotion?: string;
+}
+
+export interface LlmModelOption {
+  id: string;
+  name: string;
+  tool_calling_supported?: boolean;
+  vision_supported?: boolean;
+}
+
+export interface LlmProviderOption {
+  id: string;
+  name: string;
+  description: string;
+  default_model: string;
+  tool_calling_supported?: boolean;
+  vision_supported?: boolean;
+  models: LlmModelOption[];
+}
+
+export interface AvailableToolInfo {
+  id: string;
+  name: string;
+  description: string;
+  enabled?: boolean;
+}
+
+export interface ConfigEvent {
+  type: "config";
+  chat_input_enabled: boolean;
+  llm_provider?: string;
+  llm_model?: string;
+  available_llm_providers?: LlmProviderOption[];
+  tool_calling_enabled?: boolean;
+  tool_calling_supported?: boolean;
+  vision_supported?: boolean;
+  max_tool_calls?: number;
+  available_tools?: AvailableToolInfo[];
+  api_keys_configured?: Record<string, boolean>;
+}
+
+export interface SetApiKeyPayload {
+  type: "set_api_key";
+  provider: string;
+  api_key: string;
+}
+
+export interface TranscriptionEvent {
+  type: "transcription";
+  text: string;
+  is_final: boolean;
+}
+
+export interface TurnEndEvent {
+  type: "turn_end";
+}
+
+export interface ToolStartEvent {
+  type: "tool_start";
+  tool: string;
+}
+
+export interface ToolEndEvent {
+  type: "tool_end";
+  tool: string;
+}
+
+export interface ChatAttachment {
+  type: "image";
+  mime_type: string;
+  data: string; // base64 Data URI
+  name?: string;
+  width?: number;
+  height?: number;
+  size_bytes?: number;
+}
+
+export interface ChatMessagePayload {
+  type: "chat_message";
+  text: string;
+  attachments?: ChatAttachment[];
+  image?: string; // backward compatibility
+  provider?: string;
+  model?: string;
+  tools_enabled?: boolean;
+  timezone?: string;
+}
+
+export type AvatarEvent =
   | TranscriptEvent
-  | ToolTelemetryEvent
-  | { type: "thinking_start" }
-  | { type: "thinking_end" }
-  | { type: "speech_start" }
-  | { type: "speech_end" }
-  | { type: "turn_end" }
-  | { type: "history_cleared" };
+  | SpeechEvent
+  | EmotionEvent
+  | AnimationEvent
+  | ThinkingStartEvent
+  | ThinkingEndEvent
+  | SpeechStartEvent
+  | SpeechEndEvent
+  | SubtitleEvent
+  | SpeechSegmentEvent
+  | ConfigEvent
+  | TranscriptionEvent
+  | TurnEndEvent
+  | ToolStartEvent
+  | ToolEndEvent;

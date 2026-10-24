@@ -50,8 +50,13 @@ def _check_path_allowed(path_str: str, allowed: list[str]) -> tuple[bool, str]:
         return True, resolved
     for root in allowed:
         try:
-            if resolved.startswith(str(Path(root).resolve())):
-                return True, resolved
+            resolved_root = str(Path(root).resolve())
+            if _IS_WINDOWS:
+                if resolved.lower().startswith(resolved_root.lower()):
+                    return True, resolved
+            else:
+                if resolved.startswith(resolved_root):
+                    return True, resolved
         except Exception:
             continue
     return False, resolved

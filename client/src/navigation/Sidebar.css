@@ -1,0 +1,282 @@
+.app-sidebar {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: var(--sidebar-width);
+  height: 100vh;
+  background-color: var(--bg-sidebar);
+  border-right: 1px solid var(--border-subtle);
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  align-items: center;
+  padding: 16px 0 16px 0;
+  z-index: 100;
+  box-sizing: border-box;
+  user-select: none;
+  transition: background-color 0.2s ease, border-color 0.2s ease, transform 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+  transform: translateX(0);
+}
+
+.app-sidebar.collapsed {
+  transform: translateX(-100%);
+  pointer-events: none;
+}
+
+.sidebar-top {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 20px;
+  width: 100%;
+}
+
+.sidebar-menu-btn {
+  background: transparent;
+  border: none;
+  color: var(--text-secondary);
+  cursor: pointer;
+  padding: 8px;
+  border-radius: 8px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: color 0.15s ease, background 0.15s ease;
+}
+
+.sidebar-menu-btn:hover {
+  color: var(--text-primary);
+  background: var(--hover-bg);
+}
+
+.sidebar-nav-list {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 12px;
+  width: 100%;
+}
+
+.sidebar-nav-item {
+  position: relative;
+  width: 38px;
+  height: 38px;
+  border-radius: 8px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--text-muted);
+  background: transparent;
+  border: 1px solid transparent;
+  cursor: pointer;
+  transition: all 0.15s ease;
+  text-decoration: none;
+}
+
+.sidebar-nav-item:hover {
+  color: var(--text-secondary);
+  background: var(--hover-bg);
+}
+
+.sidebar-nav-item.active {
+  color: var(--text-primary);
+  background: var(--nav-active-bg);
+  border-color: var(--border-color);
+}
+
+/* Left edge accent indicator matching reference image */
+.sidebar-nav-item.active::before {
+  content: "";
+  position: absolute;
+  left: -9px;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 3px;
+  height: 20px;
+  background-color: var(--accent-indicator);
+  border-radius: 0 3px 3px 0;
+}
+
+/* ─── Bottom Theme & Status Controls ───────────────────────── */
+.sidebar-bottom {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  width: 100%;
+}
+
+/* ─── Server Status Indicator Light ─────────────────────────── */
+.sidebar-status-btn {
+  position: relative;
+  width: 32px;
+  height: 32px;
+  border-radius: 8px;
+  background: transparent;
+  border: 1px solid transparent;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  margin-bottom: 12px;
+  padding: 0;
+  transition: all 0.15s ease;
+}
+
+.sidebar-status-btn:hover {
+  background-color: var(--hover-bg);
+  border-color: var(--border-subtle);
+}
+
+.sidebar-status-dot {
+  position: relative;
+  width: 9px;
+  height: 9px;
+  border-radius: 50%;
+  transition: background-color 0.25s ease, box-shadow 0.25s ease;
+  z-index: 1;
+}
+
+.sidebar-status-ping {
+  position: absolute;
+  width: 9px;
+  height: 9px;
+  border-radius: 50%;
+  pointer-events: none;
+}
+
+/* Connected / Online: Emerald Green */
+.sidebar-status-btn.connected .sidebar-status-dot {
+  background-color: #22c55e;
+  box-shadow: 0 0 8px rgba(34, 197, 94, 0.8), 0 0 2px #22c55e;
+}
+
+.sidebar-status-btn.connected .sidebar-status-ping {
+  display: none;
+}
+
+/* Connecting: Warm Amber */
+.sidebar-status-btn.connecting .sidebar-status-dot {
+  background-color: #f59e0b;
+  box-shadow: 0 0 6px rgba(245, 158, 11, 0.7);
+}
+
+.sidebar-status-btn.connecting .sidebar-status-ping {
+  display: block;
+  background-color: rgba(245, 158, 11, 0.5);
+  animation: server-pulse-ring 1.5s cubic-bezier(0.24, 0, 0.38, 1) infinite;
+}
+
+/* Disconnected / Offline: Ruby Red */
+.sidebar-status-btn.disconnected .sidebar-status-dot {
+  background-color: #ef4444;
+  box-shadow: 0 0 6px rgba(239, 68, 68, 0.6);
+}
+
+.sidebar-status-btn.disconnected .sidebar-status-ping {
+  display: block;
+  background-color: rgba(239, 68, 68, 0.5);
+  animation: server-pulse-ring 2.2s cubic-bezier(0.24, 0, 0.38, 1) infinite;
+}
+
+@keyframes server-pulse-ring {
+  0% {
+    transform: scale(0.9);
+    opacity: 0.85;
+  }
+  65% {
+    transform: scale(2.6);
+    opacity: 0;
+  }
+  100% {
+    transform: scale(2.6);
+    opacity: 0;
+  }
+}
+
+/* ─── Subtitle Toggle Button ───────────────────────────────── */
+.sidebar-subtitle-btn {
+  position: relative;
+  width: 38px;
+  height: 38px;
+  border-radius: 8px;
+  background: transparent;
+  border: 1px solid transparent;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  margin-bottom: 12px;
+  padding: 0;
+  transition: all 0.18s cubic-bezier(0.16, 1, 0.3, 1);
+  user-select: none;
+}
+
+.sidebar-subtitle-btn:hover {
+  background-color: var(--hover-bg);
+  border-color: var(--border-subtle);
+}
+
+.sidebar-subtitle-btn.active {
+  color: var(--text-primary);
+  background-color: var(--nav-active-bg);
+  border-color: var(--border-color);
+}
+
+.sidebar-subtitle-btn.inactive {
+  color: var(--text-muted);
+  opacity: 0.55;
+}
+
+.sidebar-subtitle-btn.inactive:hover {
+  opacity: 0.9;
+  color: var(--text-secondary);
+}
+
+/* Glowing dot indicating subtitles are currently active */
+.sidebar-subtitle-dot {
+  position: absolute;
+  top: 5px;
+  right: 5px;
+  width: 5px;
+  height: 5px;
+  border-radius: 50%;
+  background-color: var(--accent-indicator);
+  box-shadow: 0 0 5px rgba(224, 90, 71, 0.85);
+  pointer-events: none;
+}
+
+.sidebar-theme-group {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+  background-color: var(--bg-surface);
+  border: 1px solid var(--border-subtle);
+  border-radius: 8px;
+  padding: 3px;
+}
+
+.sidebar-theme-btn {
+  width: 30px;
+  height: 30px;
+  border-radius: 6px;
+  background: transparent;
+  border: none;
+  color: var(--text-muted);
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.15s ease;
+}
+
+.sidebar-theme-btn:hover {
+  color: var(--text-primary);
+  background-color: var(--hover-bg);
+}
+
+.sidebar-theme-btn.active {
+  color: var(--text-primary);
+  background-color: var(--nav-active-bg);
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.2);
+}

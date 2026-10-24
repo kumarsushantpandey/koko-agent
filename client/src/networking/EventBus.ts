@@ -1,38 +1,54 @@
-type EventHandler<T = any> = (data: T) => void;
+import type { AvatarEvent } from "./types";
 
-class TypedEventBus {
-  private listeners: Map<string, Set<EventHandler>> = new Map();
+type EventMap = {
+  [K in AvatarEvent["type"]]: Extract<
+    AvatarEvent,
+    { type: K }
+  >;
+};
 
-  on<T = any>(event: string, handler: EventHandler<T>): () => void {
-    if (!this.listeners.has(event)) {
-      this.listeners.set(event, new Set());
+export class EventBus {
+  private listeners = new Map<
+    keyof EventMap,
+    Set<(event: AvatarEvent) => void>
+  >();
+
+  subscribe<K extends keyof EventMap>(
+    type: K,
+    listener: (event: EventMap[K]) => void
+  ) {
+    let set = this.listeners.get(type);
+
+    if (!set) {
+      set = new Set();
+      this.listeners.set(type, set);
     }
-    this.listeners.get(event)!.add(handler);
-    return () => this.off(event, handler);
+
+    set.add(listener as (event: AvatarEvent) => void);
+
+    return () => {
+      set!.delete(
+        listener as (event: AvatarEvent) => void
+      );
+    };
   }
 
-  off<T = any>(event: string, handler: EventHandler<T>): void {
-    const handlers = this.listeners.get(event);
-    if (handlers) {
-      handlers.delete(handler);
-      if (handlers.size === 0) {
-        this.listeners.delete(event);
-      }
-    }
+  emit(event: AvatarEvent) {
+    const listeners = this.listeners.get(event.type);
+    
+    console.log("[EventBus]", event);
+    
+    if (!listeners) return;
+    
+
+    listeners.forEach((listener) =>
+      listener(event)
+    );
   }
 
-  emit<T = any>(event: string, data?: T): void {
-    const handlers = this.listeners.get(event);
-    if (handlers) {
-      handlers.forEach((h) => {
-        try {
-          h(data);
-        } catch (err) {
-          console.error(`Error in event handler for "${event}":`, err);
-        }
-      });
-    }
+  clear() {
+    this.listeners.clear();
   }
 }
 
-export const avatarEvents = new TypedEventBus();
+export const avatarEvents = new EventBus();

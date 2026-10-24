@@ -29,14 +29,18 @@ def clear_conversation_history():
 async def stop_chat_stream():
     """Immediately halt any active LLM generation, tool execution, or TTS dispatch."""
     global _active_cancel_event, _active_task
-    logger.info("Interrupt received: stopping active chat stream.")
-    if _active_cancel_event:
+    was_active = False
+    if _active_cancel_event and not _active_cancel_event.is_set():
         _active_cancel_event.set()
+        was_active = True
     if _active_task and not _active_task.done():
         _active_task.cancel()
-    # Reset face and state on client
-    await broadcaster.broadcast_json({"type": "speech_end"})
-    await broadcaster.broadcast_json({"type": "turn_end"})
+        was_active = True
+    if was_active:
+        logger.info("Interrupt received: stopping active chat stream.")
+        # Reset face and state on client only if an actual stream was interrupted
+        await broadcaster.broadcast_json({"type": "speech_end"})
+        await broadcaster.broadcast_json({"type": "turn_end"})
 
 async def process_chat_message(
     text: str,
@@ -80,7 +84,7 @@ async def process_chat_message(
 
         def on_tool_activity(event_type: str, tool_name: str):
             asyncio.run_coroutine_threadsafe(
-                broadcaster.broadcast_json({"type": event_type, "tool_name": tool_name}),
+                broadcaster.broadcast_json({"type": event_type, "tool": tool_name, "tool_name": tool_name}),
                 loop,
             )
 
