@@ -37,6 +37,10 @@ const PACKET_AUDIO_INTERRUPT = 3;
 
 export type ConnectionStatus = "connected" | "connecting" | "disconnected";
 
+/**
+ * AvatarSocket handles resilient WebSocket communication, automatic reconnection,
+ * and dispatching of streaming audio packets and avatar events.
+ */
 class AvatarSocket {
   private socket: WebSocket | null = null;
   private reconnectTimer: number | null = null;
