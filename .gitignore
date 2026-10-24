@@ -1,0 +1,52 @@
+# Dependencies
+node_modules/
+.pnp
+.pnp.js
+
+# Testing and coverage
+coverage/
+
+# Production builds
+dist/
+build/
+
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+env/
+venv/
+.venv/
+ENV/
+env.bak/
+venv.bak/
+
+# Environment variables & local secrets
+.env
+.env.local
+.env.*.local
+*.local
+
+# IDE & Editor files
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+.DS_Store
+Thumbs.db
+
+# Large VRM binary models (can be tracked or untracked depending on git lfs; ignore temporary exports)
+# client/public/characters/*.vrm
+
+# Logs and scratch
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+scratch/
+scratch_*.py
+scratch_*.js
+scratch_*.ts
