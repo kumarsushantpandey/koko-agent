@@ -19,6 +19,10 @@
 import { PCMPlayer } from "./PCMPlayer";
 import { PCMQueue } from "./PCMQueue";
 
+/**
+ * AudioPlayer orchestrates Web Audio nodes, PCM streaming worklets,
+ * and FFT analysis for reactive VRM blendshape lip-sync.
+ */
 export class AudioPlayer {
   private readonly context: AudioContext;
   private readonly _gain: GainNode;

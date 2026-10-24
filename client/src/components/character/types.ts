@@ -89,6 +89,22 @@ export const CHARACTERS: Record<string, CharacterDefinition> = {
     position: [0, 0.07, -0.10],
     scale: 0.9,
   },
+  max: {
+    id: "max",
+    name: "Max",
+    displayName: "Max",
+    subtitle: "Tech Geek · Gamer Anime AI",
+    categoryTag: "CHARACTERS",
+    tagNumber: "03",
+    role: "Tech AI Companion",
+    description: "Your tech-savvy anime companion and AI coding partner. Energetic, witty, and ready to assist with coding, computer tools, and creative projects.",
+    vrmUrl: "/characters/max.vrm",
+    avatarUrl: "/koko_avatar.jpg",
+    voiceEngine: "fish",
+    placeholderText: "Message Max...",
+    position: [0, 0, 0],
+    scale: 1,
+  },
 };
 
 export const CHARACTER_LIST: CharacterDefinition[] = Object.values(CHARACTERS);

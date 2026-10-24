@@ -1,3 +1,5 @@
+"""Full-duplex WebSocket server bridge connecting browser frontend to Python agent backend."""
+
 from __future__ import annotations
 import asyncio
 import json

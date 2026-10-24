@@ -47,6 +47,7 @@ WHISPER_COMPUTE_TYPE: str = os.getenv("WHISPER_COMPUTE_TYPE", "int8")
 TTS_BACKEND: str = os.getenv("TTS_BACKEND", "fish")
 FISH_AUDIO_API_KEY: str = os.getenv("FISH_AUDIO_API_KEY", "")
 FISH_VOICE_ID: str = os.getenv("FISH_VOICE_ID", "")
+FISH_AUDIO_MODEL: str = os.getenv("FISH_AUDIO_MODEL", "s2.1-pro-free")
 
 # --- Subtitles & Emotion Sync ---
 ENABLE_SUBTITLES: bool = os.getenv("ENABLE_SUBTITLES", "True").lower() == "true"

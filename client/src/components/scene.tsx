@@ -8,6 +8,7 @@ import {
 } from "@react-three/postprocessing";
 import { useTheme } from "../navigation/ThemeContext";
 
+/** Props for the 3D WebGL Three.js Scene viewport. */
 interface SceneProps {
     character?: string;
 }

@@ -14,6 +14,7 @@ import { useTheme } from "./ThemeContext";
 import { avatarSocket, type ConnectionStatus } from "../networking";
 import "./Sidebar.css";
 
+/** Props for the primary vertical glassmorphic application sidebar. */
 interface SidebarProps {
   currentScreen: ScreenType;
   currentCharacter: string;
