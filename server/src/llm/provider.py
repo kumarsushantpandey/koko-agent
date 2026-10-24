@@ -56,8 +56,12 @@ def get_active_provider_info() -> dict[str, Any]:
                 "name": "llama.cpp (Gemma 4)",
                 "base_url": _runtime_llamacpp_url,
                 "models": [
-                    {"id": "gemma-4-it", "name": "Google Gemma 4 (Native Tools)", "context": "256k", "tools": True},
-                    {"id": "gemma-4-26b-a4b-it", "name": "Google Gemma 4 MoE", "context": "128k", "tools": True},
+                    {
+                        "id": "ggml-org/gemma-4-E2B-it-GGUF:Q4_0",
+                        "name": "Gemma 4 E2B IT (Q4_0, 2.2 GB)",
+                        "context": "8k",
+                        "tools": True,
+                    },
                 ],
             },
         ],
