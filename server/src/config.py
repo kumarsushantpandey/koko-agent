@@ -23,7 +23,7 @@ DEFAULT_MISTRAL_MODEL: str = os.getenv("DEFAULT_MISTRAL_MODEL", "ministral-8b-la
 
 # llama.cpp (Gemma 4 native function calling)
 LLAMACPP_BASE_URL: str = os.getenv("LLAMACPP_BASE_URL", "http://127.0.0.1:8080/v1")
-LLAMACPP_MODEL: str = os.getenv("LLAMACPP_MODEL", "gemma-4-it")
+LLAMACPP_MODEL: str = os.getenv("LLAMACPP_MODEL", "ggml-org/gemma-4-E2B-it-GGUF:Q4_0")
 LLAMACPP_API_KEY: str = os.getenv("LLAMACPP_API_KEY", "not-needed")
 
 # LLM Generation Parameters
