@@ -1,3 +1,5 @@
+"""Koko AI server main entry point and async event loop runner."""
+
 from __future__ import annotations
 import asyncio
 import logging
