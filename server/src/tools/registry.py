@@ -6,6 +6,7 @@ from typing import Any
 
 from src.tools.base import Tool
 from src.tools.builtins import BUILTIN_TOOLS
+from src.tools.computer import COMPUTER_TOOLS
 from src import config
 
 logger = logging.getLogger(__name__)
@@ -16,6 +17,8 @@ class ToolRegistry:
     def __init__(self):
         self._tools: dict[str, Tool] = {}
         for tool in BUILTIN_TOOLS:
+            self.register(tool)
+        for tool in COMPUTER_TOOLS:
             self.register(tool)
 
     def register(self, tool: Tool):

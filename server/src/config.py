@@ -51,3 +51,12 @@ FISH_VOICE_ID: str = os.getenv("FISH_VOICE_ID", "")
 # --- Subtitles & Emotion Sync ---
 ENABLE_SUBTITLES: bool = os.getenv("ENABLE_SUBTITLES", "True").lower() == "true"
 EMOTION_SYNC_MODE: str = os.getenv("EMOTION_SYNC_MODE", "synced")
+
+# --- Computer-Use Tools ---
+COMPUTER_TOOLS_ENABLED: bool = os.getenv("COMPUTER_TOOLS_ENABLED", "True").lower() == "true"
+MAX_BASH_TIMEOUT: float = float(os.getenv("MAX_BASH_TIMEOUT", "30"))
+MAX_FILE_READ_KB: int = int(os.getenv("MAX_FILE_READ_KB", "128"))
+MAX_FILE_WRITE_KB: int = int(os.getenv("MAX_FILE_WRITE_KB", "512"))
+# Comma-separated list of allowed root dirs (empty = unrestricted)
+BASH_ALLOWED_DIRS: str = os.getenv("BASH_ALLOWED_DIRS", "")
+FILE_ALLOWED_DIRS: str = os.getenv("FILE_ALLOWED_DIRS", "")
