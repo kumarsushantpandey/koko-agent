@@ -168,15 +168,30 @@ class AvatarSocket {
   }
 
   /**
-   * Updates an API key on the backend (e.g. "openai", "bedrock").
+   * Updates an API key on the backend (e.g. "mistral", "fish", "tavily").
    */
-  setApiKey(provider: string, apiKey: string) {
+  setApiKey(provider: string, apiKey: string, baseUrl?: string) {
     if (this.socket && this.socket.readyState === WebSocket.OPEN) {
       console.log(`[AvatarSocket] Sending set_api_key: provider=${provider}`);
       this.send({
         type: "set_api_key",
         provider,
         api_key: apiKey,
+        base_url: baseUrl,
+      });
+    }
+  }
+
+  /**
+   * Sets the llama.cpp server URL on the backend.
+   */
+  setLlamacppUrl(baseUrl: string) {
+    if (this.socket && this.socket.readyState === WebSocket.OPEN) {
+      this.send({
+        type: "set_api_key",
+        provider: "llama_cpp",
+        api_key: "",
+        base_url: baseUrl,
       });
     }
   }

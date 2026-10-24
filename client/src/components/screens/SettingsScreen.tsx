@@ -12,13 +12,15 @@ import {
   IconDeviceDesktopAnalytics,
   IconAlertCircle,
   IconCalculator,
-  IconArrowsExchange,
   IconWorld,
-  IconCalendarTime,
   IconKey,
   IconEye,
   IconEyeOff,
   IconSearch,
+  IconTerminal2,
+  IconFileCode,
+  IconServer,
+  IconRefresh,
 } from "@tabler/icons-react";
 import { avatarEvents, avatarSocket } from "../../networking";
 import "./SettingsScreen.css";
@@ -32,7 +34,7 @@ interface SettingsScreenProps {
   onUpdateTools?: (enabled: boolean) => void;
 }
 
-interface ModelDetail {
+export interface ModelDetail {
   id: string;
   name: string;
   badge?: string;
@@ -41,8 +43,8 @@ interface ModelDetail {
   visionSupported?: boolean;
 }
 
-interface ProviderDetail {
-  id: "mistral" | "openai" | "freeai" | "openrouter" | "bedrock";
+export interface ProviderDetail {
+  id: "mistral" | "llama_cpp";
   name: string;
   badge: string;
   toolCallingSupported: boolean;
@@ -51,47 +53,6 @@ interface ProviderDetail {
 }
 
 const PROVIDERS: ProviderDetail[] = [
-  {
-    id: "openai",
-    name: "OpenAI",
-    badge: "GPT Frontier",
-    toolCallingSupported: true,
-    visionSupported: true,
-    models: [
-      {
-        id: "gpt-4o-mini",
-        name: "GPT-4o Mini",
-        badge: "Recommended",
-        context: "128k context",
-        toolCallingSupported: true,
-        visionSupported: true,
-      },
-      {
-        id: "gpt-4o",
-        name: "GPT-4o",
-        badge: "Flagship",
-        context: "128k context",
-        toolCallingSupported: true,
-        visionSupported: true,
-      },
-      {
-        id: "gpt-4-turbo",
-        name: "GPT-4 Turbo",
-        badge: "Frontier",
-        context: "128k context",
-        toolCallingSupported: true,
-        visionSupported: true,
-      },
-      {
-        id: "gpt-3.5-turbo",
-        name: "GPT-3.5 Turbo",
-        badge: "Legacy",
-        context: "16k context",
-        toolCallingSupported: true,
-        visionSupported: false,
-      },
-    ],
-  },
   {
     id: "mistral",
     name: "Mistral AI",
@@ -123,225 +84,20 @@ const PROVIDERS: ProviderDetail[] = [
         toolCallingSupported: true,
         visionSupported: false,
       },
-      {
-        id: "open-mistral-7b",
-        name: "Open Mistral 7B",
-        badge: "Baseline",
-        context: "32k context",
-        toolCallingSupported: true,
-        visionSupported: false,
-      },
     ],
   },
   {
-    id: "freeai",
-    name: "Free.ai",
-    badge: "Free Gateway",
+    id: "llama_cpp",
+    name: "llama.cpp (Gemma 4)",
+    badge: "Local GGUF",
     toolCallingSupported: true,
     visionSupported: false,
     models: [
       {
-        id: "qwen7b",
-        name: "Qwen 2.5 7B",
-        badge: "Recommended",
-        context: "32k context",
-        toolCallingSupported: true,
-        visionSupported: false,
-      },
-      {
-        id: "qwen3-8b",
-        name: "Qwen 3 8B",
-        badge: "Next-Gen",
-        context: "32k context",
-        toolCallingSupported: true,
-        visionSupported: false,
-      },
-    ],
-  },
-  {
-    id: "openrouter",
-    name: "OpenRouter (Free)",
-    badge: "Free Tier",
-    toolCallingSupported: true,
-    visionSupported: true,
-    models: [
-      {
-        id: "openrouter/free",
-        name: "Free Models Router",
-        badge: "Auto (Recommended)",
-        context: "200k context",
-        toolCallingSupported: true,
-        visionSupported: true,
-      },
-      {
-        id: "inclusionai/ling-3.0-flash-sante:free",
-        name: "Ling 3.0 Flash",
-        badge: "Fast",
-        context: "262k context",
-        toolCallingSupported: true,
-      },
-      {
-        id: "liquid/lfm-2.5-2.6b:free",
-        name: "Liquid LFM 2.5",
-        badge: "Lightweight",
-        context: "65k context",
-        toolCallingSupported: true,
-      },
-      {
-        id: "stealth/space-bunny-alpha",
-        name: "Space Bunny Alpha",
-        badge: "1M Context",
-        context: "1M context",
-        toolCallingSupported: true,
-      },
-      {
-        id: "poolside/laguna-s-2.1:free",
-        name: "Laguna S 2.1",
-        badge: "Reasoning",
-        context: "262k context",
-        toolCallingSupported: true,
-      },
-      {
-        id: "qwen/qwen3.8-27b:free",
-        name: "Qwen 3.8 27B",
-        badge: "Multilingual",
-        context: "262k context",
-        toolCallingSupported: true,
-      },
-      {
-        id: "google/gemma-4-31b-it:free",
-        name: "Google Gemma 4 31B (Free)",
-        badge: "Tool Native",
-        context: "256k context",
-        toolCallingSupported: true,
-        visionSupported: true,
-      },
-      {
-        id: "google/gemma-4-26b-a4b-it:free",
-        name: "Google Gemma 4 26B A4B (Free)",
-        badge: "MoE Free",
-        context: "128k context",
-        toolCallingSupported: true,
-        visionSupported: true,
-      },
-    ],
-  },
-  {
-    id: "bedrock",
-    name: "AWS Bedrock",
-    badge: "Enterprise",
-    toolCallingSupported: true,
-    visionSupported: true,
-    models: [
-      {
-        id: "mistral.ministral-3-8b-instruct",
-        name: "Ministral 3 8B",
-        badge: "Recommended",
-        context: "128k context",
-        toolCallingSupported: true,
-        visionSupported: true,
-      },
-      {
-        id: "mistral.ministral-3-14b-instruct",
-        name: "Ministral 3 14B",
-        badge: "Reasoning",
-        context: "128k context",
-        toolCallingSupported: true,
-        visionSupported: true,
-      },
-      {
-        id: "mistral.mistral-large-3-675b-instruct",
-        name: "Mistral Large 3 675B",
-        badge: "Flagship",
-        context: "128k context",
-        toolCallingSupported: true,
-        visionSupported: true,
-      },
-      {
-        id: "qwen.qwen3-vl-235b-a22b-instruct",
-        name: "Qwen 3 VL 235B",
-        badge: "Vision Flagship",
-        context: "128k context",
-        toolCallingSupported: true,
-        visionSupported: true,
-      },
-      {
-        id: "qwen.qwen3-32b",
-        name: "Qwen 3 32B",
-        badge: "High Reasoning",
-        context: "32k context",
-        toolCallingSupported: true,
-        visionSupported: false,
-      },
-      {
-        id: "openai.gpt-oss-120b",
-        name: "OpenAI GPT-OSS 120B",
-        badge: "Reasoning Flagship",
-        context: "128k context",
-        toolCallingSupported: true,
-        visionSupported: false,
-      },
-      {
-        id: "openai.gpt-oss-20b",
-        name: "OpenAI GPT-OSS 20B",
-        badge: "Fast Reasoning",
-        context: "128k context",
-        toolCallingSupported: true,
-        visionSupported: false,
-      },
-      {
-        id: "google.gemma-3-4b-it",
-        name: "Google Gemma 3 4B",
-        badge: "Fast",
-        context: "32k context",
-        toolCallingSupported: false,
-        visionSupported: false,
-      },
-      {
-        id: "google.gemma-3-12b-it",
-        name: "Google Gemma 3 12B",
-        badge: "Smart",
-        context: "32k context",
-        toolCallingSupported: false,
-        visionSupported: false,
-      },
-      {
-        id: "google.gemma-3-27b-it",
-        name: "Google Gemma 3 27B",
-        badge: "Frontier",
-        context: "32k context",
-        toolCallingSupported: false,
-        visionSupported: false,
-      },
-      {
-        id: "deepseek.v3.1",
-        name: "DeepSeek V3.1",
-        badge: "Reasoning",
-        context: "64k context",
-        toolCallingSupported: true,
-        visionSupported: false,
-      },
-      {
-        id: "deepseek.v3.2",
-        name: "DeepSeek V3.2",
-        badge: "Deep Reasoning",
-        context: "64k context",
-        toolCallingSupported: true,
-        visionSupported: false,
-      },
-      {
-        id: "zai.glm-5",
-        name: "Zhipu GLM 5",
-        badge: "Frontier",
-        context: "128k context",
-        toolCallingSupported: true,
-        visionSupported: false,
-      },
-      {
-        id: "moonshotai.kimi-k2.5",
-        name: "Moonshot Kimi K2.5",
-        badge: "Multilingual",
-        context: "128k context",
+        id: "ggml-org/gemma-4-E2B-it-GGUF:Q4_0",
+        name: "Gemma 4 E2B IT (Q4_0, 2.2 GB)",
+        badge: "Native Tools",
+        context: "8k context",
         toolCallingSupported: true,
         visionSupported: false,
       },
@@ -353,40 +109,57 @@ export const SettingsScreen: React.FC<SettingsScreenProps> = ({
   currentCharacter = "koko",
   currentProvider,
   currentModel,
-  currentToolsEnabled = false,
+  currentToolsEnabled = true,
   onUpdateLlm,
   onUpdateTools,
 }) => {
-  const [provider, setProvider] = useState<string>(currentProvider || "mistral");
+  const [provider, setProvider] = useState<"mistral" | "llama_cpp">(() => {
+    return (currentProvider === "llama_cpp" || currentProvider === "llamacpp") ? "llama_cpp" : "mistral";
+  });
   const [model, setModel] = useState<string>(currentModel || "ministral-8b-latest");
   const [toolsEnabled, setToolsEnabled] = useState<boolean>(currentToolsEnabled);
   const [isCopied, setIsCopied] = useState(false);
-  const [openAiKey, setOpenAiKey] = useState<string>(() => {
+
+  // Mistral API Key state
+  const [mistralKey, setMistralKey] = useState<string>(() => {
     if (typeof window !== "undefined") {
-      return localStorage.getItem("akari_openai_api_key") || "";
+      return (
+        localStorage.getItem("koko_mistral_api_key") ||
+        localStorage.getItem("mistral_api_key") ||
+        ""
+      );
     }
     return "";
   });
-  const [showKey, setShowKey] = useState<boolean>(false);
-  const [isKeySaved, setIsKeySaved] = useState<boolean>(false);
+  const [showMistralKey, setShowMistralKey] = useState<boolean>(false);
+  const [isMistralKeySaved, setIsMistralKeySaved] = useState<boolean>(false);
 
-  const [bedrockToken, setBedrockToken] = useState<string>(() => {
+  // llama.cpp Server Base URL state
+  const [llamacppUrl, setLlamacppUrl] = useState<string>(() => {
     if (typeof window !== "undefined") {
-      return localStorage.getItem("akari_bedrock_bearer_token") || "";
+      return (
+        localStorage.getItem("koko_llamacpp_url") ||
+        localStorage.getItem("llamacpp_base_url") ||
+        "http://127.0.0.1:8080/v1"
+      );
     }
-    return "";
+    return "http://127.0.0.1:8080/v1";
   });
-  const [showBedrockToken, setShowBedrockToken] = useState<boolean>(false);
-  const [isBedrockKeySaved, setIsBedrockKeySaved] = useState<boolean>(false);
+  const [isLlamacppUrlSaved, setIsLlamacppUrlSaved] = useState<boolean>(false);
 
+  // Server keys configured broadcast state
   const [serverKeysConfigured, setServerKeysConfigured] = useState<Record<string, boolean>>(() => {
     return avatarSocket.getLastConfig()?.api_keys_configured || {};
   });
 
-  // Sync state if props change from outside (e.g. browser back/forward)
+  // Sync state if props change from outside
   useEffect(() => {
-    if (currentProvider && currentProvider !== provider) {
-      setProvider(currentProvider);
+    if (currentProvider) {
+      const normalized: "mistral" | "llama_cpp" =
+        (currentProvider === "llama_cpp" || currentProvider === "llamacpp") ? "llama_cpp" : "mistral";
+      if (normalized !== provider) {
+        setProvider(normalized);
+      }
     }
   }, [currentProvider]);
 
@@ -412,7 +185,9 @@ export const SettingsScreen: React.FC<SettingsScreenProps> = ({
 
     const unsubscribe = avatarEvents.subscribe("config", (event) => {
       if (event.llm_provider) {
-        setProvider(event.llm_provider);
+        const p: "mistral" | "llama_cpp" =
+          (event.llm_provider === "llama_cpp" || event.llm_provider === "llamacpp") ? "llama_cpp" : "mistral";
+        setProvider(p);
       }
       if (event.llm_model) {
         setModel(event.llm_model);
@@ -435,54 +210,50 @@ export const SettingsScreen: React.FC<SettingsScreenProps> = ({
     activeProviderDetail.models[0];
 
   const isCurrentModelToolSupported = activeModelDetail?.toolCallingSupported ?? false;
-  const isOpenAiConfigured = Boolean(openAiKey.trim() || serverKeysConfigured["openai"]);
-  const isBedrockConfigured = Boolean(bedrockToken.trim() || serverKeysConfigured["bedrock"]);
+  const isMistralConfigured = Boolean(mistralKey.trim() || serverKeysConfigured["mistral"]);
 
-  const handleSaveApiKey = () => {
-    const trimmed = openAiKey.trim();
+  const handleSaveMistralKey = () => {
+    const trimmed = mistralKey.trim();
     if (typeof window !== "undefined") {
       if (trimmed) {
-        localStorage.setItem("akari_openai_api_key", trimmed);
+        localStorage.setItem("koko_mistral_api_key", trimmed);
       } else {
-        localStorage.removeItem("akari_openai_api_key");
+        localStorage.removeItem("koko_mistral_api_key");
       }
     }
-    avatarSocket.setApiKey("openai", trimmed);
-    setIsKeySaved(true);
-    setTimeout(() => setIsKeySaved(false), 2500);
+    avatarSocket.setApiKey("mistral", trimmed);
+    setIsMistralKeySaved(true);
+    setTimeout(() => setIsMistralKeySaved(false), 2500);
   };
 
-  const handleClearApiKey = () => {
-    setOpenAiKey("");
+  const handleClearMistralKey = () => {
+    setMistralKey("");
     if (typeof window !== "undefined") {
-      localStorage.removeItem("akari_openai_api_key");
+      localStorage.removeItem("koko_mistral_api_key");
     }
-    avatarSocket.setApiKey("openai", "");
+    avatarSocket.setApiKey("mistral", "");
   };
 
-  const handleSaveBedrockToken = () => {
-    const trimmed = bedrockToken.trim();
+  const handleSaveLlamacppUrl = () => {
+    const trimmed = llamacppUrl.trim() || "http://127.0.0.1:8080/v1";
     if (typeof window !== "undefined") {
-      if (trimmed) {
-        localStorage.setItem("akari_bedrock_bearer_token", trimmed);
-      } else {
-        localStorage.removeItem("akari_bedrock_bearer_token");
-      }
+      localStorage.setItem("koko_llamacpp_url", trimmed);
     }
-    avatarSocket.setApiKey("bedrock", trimmed);
-    setIsBedrockKeySaved(true);
-    setTimeout(() => setIsBedrockKeySaved(false), 2500);
+    avatarSocket.setLlamacppUrl(trimmed);
+    setIsLlamacppUrlSaved(true);
+    setTimeout(() => setIsLlamacppUrlSaved(false), 2500);
   };
 
-  const handleClearBedrockToken = () => {
-    setBedrockToken("");
+  const handleResetLlamacppUrl = () => {
+    const defaultUrl = "http://127.0.0.1:8080/v1";
+    setLlamacppUrl(defaultUrl);
     if (typeof window !== "undefined") {
-      localStorage.removeItem("akari_bedrock_bearer_token");
+      localStorage.setItem("koko_llamacpp_url", defaultUrl);
     }
-    avatarSocket.setApiKey("bedrock", "");
+    avatarSocket.setLlamacppUrl(defaultUrl);
   };
 
-  const handleSelectProvider = (newProviderId: "mistral" | "openai" | "freeai" | "openrouter" | "bedrock") => {
+  const handleSelectProvider = (newProviderId: "mistral" | "llama_cpp") => {
     if (newProviderId === provider) return;
     const targetProviderObj = PROVIDERS.find((p) => p.id === newProviderId)!;
     const defaultModelObj = targetProviderObj.models[0];
@@ -512,7 +283,6 @@ export const SettingsScreen: React.FC<SettingsScreenProps> = ({
       setToolsEnabled(false);
       onUpdateTools?.(false);
     } else if (selectedModelObj && selectedModelObj.toolCallingSupported && !toolsEnabled) {
-      // Automatically re-enable tool calling when selecting a tool-capable model (e.g. GPT-OSS 120B)
       setToolsEnabled(true);
       onUpdateTools?.(true);
     }
@@ -550,7 +320,7 @@ export const SettingsScreen: React.FC<SettingsScreenProps> = ({
           </p>
         </header>
 
-        {/* ─── Provider Segmented Selector ───────────────────────────── */}
+        {/* ─── Provider Segmented Selector (Only Mistral AI and llama.cpp) ─── */}
         <section className="settings-section" aria-labelledby="provider-heading">
           <div className="section-label-row">
             <IconCpu size={16} className="section-icon" />
@@ -579,54 +349,58 @@ export const SettingsScreen: React.FC<SettingsScreenProps> = ({
           </div>
         </section>
 
-        {/* ─── OpenAI API Key Configuration (When OpenAI is selected) ─── */}
-        {provider === "openai" && (
-          <section className="settings-section api-key-section" aria-labelledby="apikey-heading">
+        {/* ─── Mistral AI Key Configuration ─────────────────────────── */}
+        {provider === "mistral" && (
+          <section className="settings-section api-key-section" aria-labelledby="mistral-key-heading">
             <div className="section-label-row">
               <IconKey size={16} className="section-icon" />
-              <span id="apikey-heading" className="section-label">
-                OpenAI API Key
+              <span id="mistral-key-heading" className="section-label">
+                Mistral AI API Key
               </span>
-              <span className={`api-key-status-pill ${isOpenAiConfigured ? "configured" : "required"}`}>
+              <span className={`api-key-status-pill ${isMistralConfigured ? "configured" : "required"}`}>
                 <span className="status-dot" />
-                {isOpenAiConfigured ? "Key Active" : "Key Required"}
+                {isMistralConfigured ? "Key Active" : "Key Required"}
               </span>
             </div>
 
             <div className="api-key-card">
               <p className="api-key-instructions">
-                Enter your official OpenAI API key (<span className="code-hint">sk-...</span>) to use GPT-4o, GPT-4o Mini, tool calling, and multimodal vision.
+                Enter your official Mistral API key (<span className="code-hint">MISTRAL_API_KEY</span>) to power Ministral 8B, Pixtral 12B Vision, and Mistral Small reasoning models.
               </p>
 
               <div className="api-key-input-wrapper">
                 <input
-                  type={showKey ? "text" : "password"}
+                  type={showMistralKey ? "text" : "password"}
                   className="api-key-input"
-                  placeholder="sk-proj-... or sk-..."
-                  value={openAiKey}
-                  onChange={(e) => setOpenAiKey(e.target.value)}
-                  onKeyDown={(e) => e.key === "Enter" && handleSaveApiKey()}
+                  placeholder={
+                    serverKeysConfigured["mistral"]
+                      ? "Configured in server .env (MISTRAL_API_KEY)"
+                      : "Enter Mistral API Key..."
+                  }
+                  value={mistralKey}
+                  onChange={(e) => setMistralKey(e.target.value)}
+                  onKeyDown={(e) => e.key === "Enter" && handleSaveMistralKey()}
                   autoComplete="off"
                   spellCheck={false}
                 />
                 <button
                   type="button"
                   className="api-key-toggle-btn"
-                  onClick={() => setShowKey(!showKey)}
-                  title={showKey ? "Hide API Key" : "Show API Key"}
-                  aria-label={showKey ? "Hide API Key" : "Show API Key"}
+                  onClick={() => setShowMistralKey(!showMistralKey)}
+                  title={showMistralKey ? "Hide API Key" : "Show API Key"}
+                  aria-label={showMistralKey ? "Hide API Key" : "Show API Key"}
                 >
-                  {showKey ? <IconEyeOff size={16} /> : <IconEye size={16} />}
+                  {showMistralKey ? <IconEyeOff size={16} /> : <IconEye size={16} />}
                 </button>
               </div>
 
               <div className="api-key-actions-row">
                 <button
                   type="button"
-                  className={`api-key-save-btn ${isKeySaved ? "saved" : ""}`}
-                  onClick={handleSaveApiKey}
+                  className={`api-key-save-btn ${isMistralKeySaved ? "saved" : ""}`}
+                  onClick={handleSaveMistralKey}
                 >
-                  {isKeySaved ? (
+                  {isMistralKeySaved ? (
                     <>
                       <IconCheck size={14} stroke={3} />
                       <span>Saved & Synced</span>
@@ -635,11 +409,11 @@ export const SettingsScreen: React.FC<SettingsScreenProps> = ({
                     <span>Save & Use Key</span>
                   )}
                 </button>
-                {openAiKey && (
+                {mistralKey && (
                   <button
                     type="button"
                     className="api-key-clear-btn"
-                    onClick={handleClearApiKey}
+                    onClick={handleClearMistralKey}
                   >
                     Clear Key
                   </button>
@@ -647,102 +421,88 @@ export const SettingsScreen: React.FC<SettingsScreenProps> = ({
               </div>
 
               <div className="api-key-security-note">
-                <IconAlertCircle size={13} className="note-icon" />
-                <span>
-                  Keys are stored locally in your browser and synced directly to your running backend session.
-                </span>
-              </div>
-            </div>
-          </section>
-        )}
-
-        {/* ─── AWS Bedrock Bearer Token Configuration (When Bedrock is selected) ─── */}
-        {provider === "bedrock" && (
-          <section className="settings-section api-key-section" aria-labelledby="bedrock-heading">
-            <div className="section-label-row">
-              <IconKey size={16} className="section-icon" />
-              <span id="bedrock-heading" className="section-label">
-                AWS Bedrock Bearer Token
-              </span>
-              <span className={`api-key-status-pill ${isBedrockConfigured ? "configured" : "required"}`}>
-                <span className="status-dot" />
-                {isBedrockConfigured ? "Token Active" : "Token Required"}
-              </span>
-            </div>
-
-            <div className="api-key-card">
-              <p className="api-key-instructions">
-                Enter your Amazon Bedrock API key / Bearer Token (<span className="code-hint">bedrock-api-key-...</span>) to use Ministral 3, Gemma 4 (tool calling enabled), Gemma 3, Qwen 3, and Claude models.
-              </p>
-
-              <div className="api-key-input-wrapper">
-                <input
-                  type={showBedrockToken ? "text" : "password"}
-                  className="api-key-input"
-                  placeholder={
-                    serverKeysConfigured["bedrock"]
-                      ? "Configured in server .env (AWS_BEARER_TOKEN_BEDROCK)"
-                      : "bedrock-api-key-..."
-                  }
-                  value={bedrockToken}
-                  onChange={(e) => setBedrockToken(e.target.value)}
-                  onKeyDown={(e) => e.key === "Enter" && handleSaveBedrockToken()}
-                  autoComplete="off"
-                  spellCheck={false}
-                />
-                <button
-                  type="button"
-                  className="api-key-toggle-btn"
-                  onClick={() => setShowBedrockToken(!showBedrockToken)}
-                  title={showBedrockToken ? "Hide Bearer Token" : "Show Bearer Token"}
-                  aria-label={showBedrockToken ? "Hide Bearer Token" : "Show Bearer Token"}
-                >
-                  {showBedrockToken ? <IconEyeOff size={16} /> : <IconEye size={16} />}
-                </button>
-              </div>
-
-              <div className="api-key-actions-row">
-                <button
-                  type="button"
-                  className={`api-key-save-btn ${isBedrockKeySaved ? "saved" : ""}`}
-                  onClick={handleSaveBedrockToken}
-                >
-                  {isBedrockKeySaved ? (
-                    <>
-                      <IconCheck size={14} stroke={3} />
-                      <span>Saved & Synced</span>
-                    </>
-                  ) : (
-                    <span>Save & Use Token</span>
-                  )}
-                </button>
-                {bedrockToken && (
-                  <button
-                    type="button"
-                    className="api-key-clear-btn"
-                    onClick={handleClearBedrockToken}
-                  >
-                    Clear Token
-                  </button>
-                )}
-              </div>
-
-              <div className="api-key-security-note">
-                {serverKeysConfigured["bedrock"] ? (
+                {serverKeysConfigured["mistral"] ? (
                   <>
                     <IconCheck size={14} className="note-icon" style={{ color: "#34d399" }} />
                     <span style={{ color: "#a7f3d0" }}>
-                      Active from server environment (<span className="code-hint">AWS_BEARER_TOKEN_BEDROCK</span>). Ready for inference.
+                      Active from server environment (<span className="code-hint">MISTRAL_API_KEY</span>). Ready for inference.
                     </span>
                   </>
                 ) : (
                   <>
                     <IconAlertCircle size={13} className="note-icon" />
                     <span>
-                      Configured in <span className="code-hint">AWS_BEARER_TOKEN_BEDROCK</span> or saved directly to your session.
+                      Keys are stored locally in your browser and synced directly to your running server session.
                     </span>
                   </>
                 )}
+              </div>
+            </div>
+          </section>
+        )}
+
+        {/* ─── llama.cpp Local Endpoint Configuration ───────────────── */}
+        {provider === "llama_cpp" && (
+          <section className="settings-section api-key-section" aria-labelledby="llamacpp-heading">
+            <div className="section-label-row">
+              <IconServer size={16} className="section-icon" />
+              <span id="llamacpp-heading" className="section-label">
+                llama.cpp Server Endpoint
+              </span>
+              <span className="api-key-status-pill configured">
+                <span className="status-dot" />
+                Local Endpoint
+              </span>
+            </div>
+
+            <div className="api-key-card">
+              <p className="api-key-instructions">
+                Connect to a local or LAN llama-server instance running Google Gemma 4 GGUF with native tool calling.
+              </p>
+
+              <div className="api-key-input-wrapper">
+                <input
+                  type="text"
+                  className="api-key-input"
+                  placeholder="http://127.0.0.1:8080/v1"
+                  value={llamacppUrl}
+                  onChange={(e) => setLlamacppUrl(e.target.value)}
+                  onKeyDown={(e) => e.key === "Enter" && handleSaveLlamacppUrl()}
+                  autoComplete="off"
+                  spellCheck={false}
+                />
+              </div>
+
+              <div className="api-key-actions-row">
+                <button
+                  type="button"
+                  className={`api-key-save-btn ${isLlamacppUrlSaved ? "saved" : ""}`}
+                  onClick={handleSaveLlamacppUrl}
+                >
+                  {isLlamacppUrlSaved ? (
+                    <>
+                      <IconCheck size={14} stroke={3} />
+                      <span>Endpoint Synced</span>
+                    </>
+                  ) : (
+                    <span>Save & Connect</span>
+                  )}
+                </button>
+                <button
+                  type="button"
+                  className="api-key-clear-btn"
+                  onClick={handleResetLlamacppUrl}
+                >
+                  <IconRefresh size={13} style={{ marginRight: 4 }} />
+                  Reset Default
+                </button>
+              </div>
+
+              <div className="api-key-security-note">
+                <IconAlertCircle size={13} className="note-icon" />
+                <span>
+                  Start command: <span className="code-hint">llama-server.exe -hf ggml-org/gemma-4-E2B-it-GGUF:Q4_0 -c 8192 --port 8080</span>
+                </span>
               </div>
             </div>
           </section>
@@ -851,8 +611,8 @@ export const SettingsScreen: React.FC<SettingsScreenProps> = ({
                 </div>
                 <p className="tools-card-desc">
                   {isCurrentModelToolSupported
-                    ? "Allow's to invoke external tools (such as live time, date, and system status) to provide accurate answers rather than hallucinating."
-                    : "The selected model does not support tool calling. Choose a compatible model (e.g. Ministral 8B or Qwen 2.5 7B) to enable this feature."}
+                    ? "Allows Koko to invoke host computer tools, live web search, safe math, and system sensors to provide accurate answers without hallucinating."
+                    : "The selected model does not support tool calling. Choose Ministral 8B, Mistral Small, or Gemma 4 to enable this feature."}
                 </p>
               </div>
 
@@ -881,207 +641,63 @@ export const SettingsScreen: React.FC<SettingsScreenProps> = ({
               </button>
             </div>
 
-            {/* Available Tools Grid */}
+            {/* Available Tools Grid - Showing ONLY tools used in this codebase */}
             <div className="available-tools-header">
               <span className="available-tools-title">Available Tools</span>
               <span
                 className="available-tools-limit"
-                title="Safety limit: Maximum number of sequential tool execution iterations permitted within a single user message turn to prevent runaway loops."
+                title="Safety limit: Maximum number of sequential tool execution iterations permitted within a single user message turn."
               >
-                Max: 5 rounds / turn
+                Max: 20 rounds / turn
               </span>
             </div>
 
             <div className="available-tools-grid">
+              {/* Tool 1: Bash Terminal */}
               <div
                 className={`tool-item-card ${
                   isCurrentModelToolSupported && toolsEnabled ? "active" : "dormant"
                 }`}
               >
                 <div className="tool-item-icon-box">
-                  <IconTools size={16} />
+                  <IconTerminal2 size={16} />
                 </div>
                 <div className="tool-item-info">
                   <div className="tool-item-name-row">
-                    <span className="tool-item-name">Tool Discovery</span>
+                    <span className="tool-item-name">Bash Terminal</span>
                     <span className="tool-item-status">
                       {isCurrentModelToolSupported && toolsEnabled ? "Ready" : "Inactive"}
                     </span>
                   </div>
                   <span className="tool-item-desc">
-                    Allows model to dynamically list and inspect all capabilities
+                    Executes host shell commands directly in D:/developer/
                   </span>
                 </div>
               </div>
 
+              {/* Tool 2: File Manager */}
               <div
                 className={`tool-item-card ${
                   isCurrentModelToolSupported && toolsEnabled ? "active" : "dormant"
                 }`}
               >
                 <div className="tool-item-icon-box">
-                  <IconClock size={16} />
+                  <IconFileCode size={16} />
                 </div>
                 <div className="tool-item-info">
                   <div className="tool-item-name-row">
-                    <span className="tool-item-name">Current Time</span>
+                    <span className="tool-item-name">File Manager</span>
                     <span className="tool-item-status">
                       {isCurrentModelToolSupported && toolsEnabled ? "Ready" : "Inactive"}
                     </span>
                   </div>
                   <span className="tool-item-desc">
-                    Retrieves live time in 12h/24h format for any location
+                    Full read, write, edit, and directory operations in D:/developer/
                   </span>
                 </div>
               </div>
 
-              <div
-                className={`tool-item-card ${
-                  isCurrentModelToolSupported && toolsEnabled ? "active" : "dormant"
-                }`}
-              >
-                <div className="tool-item-icon-box">
-                  <IconWorld size={16} />
-                </div>
-                <div className="tool-item-info">
-                  <div className="tool-item-name-row">
-                    <span className="tool-item-name">Timezone Details</span>
-                    <span className="tool-item-status">
-                      {isCurrentModelToolSupported && toolsEnabled ? "Ready" : "Inactive"}
-                    </span>
-                  </div>
-                  <span className="tool-item-desc">
-                    Resolves timezone IANA code, UTC offset, and DST
-                  </span>
-                </div>
-              </div>
-
-              <div
-                className={`tool-item-card ${
-                  isCurrentModelToolSupported && toolsEnabled ? "active" : "dormant"
-                }`}
-              >
-                <div className="tool-item-icon-box">
-                  <IconArrowsExchange size={16} />
-                </div>
-                <div className="tool-item-info">
-                  <div className="tool-item-name-row">
-                    <span className="tool-item-name">Time Converter</span>
-                    <span className="tool-item-status">
-                      {isCurrentModelToolSupported && toolsEnabled ? "Ready" : "Inactive"}
-                    </span>
-                  </div>
-                  <span className="tool-item-desc">
-                    Converts specific times between any two cities
-                  </span>
-                </div>
-              </div>
-
-              <div
-                className={`tool-item-card ${
-                  isCurrentModelToolSupported && toolsEnabled ? "active" : "dormant"
-                }`}
-              >
-                <div className="tool-item-icon-box">
-                  <IconArrowsExchange size={16} />
-                </div>
-                <div className="tool-item-info">
-                  <div className="tool-item-name-row">
-                    <span className="tool-item-name">Time Difference</span>
-                    <span className="tool-item-status">
-                      {isCurrentModelToolSupported && toolsEnabled ? "Ready" : "Inactive"}
-                    </span>
-                  </div>
-                  <span className="tool-item-desc">
-                    Computes hours offset and compares time zones
-                  </span>
-                </div>
-              </div>
-
-              <div
-                className={`tool-item-card ${
-                  isCurrentModelToolSupported && toolsEnabled ? "active" : "dormant"
-                }`}
-              >
-                <div className="tool-item-icon-box">
-                  <IconCalendar size={16} />
-                </div>
-                <div className="tool-item-info">
-                  <div className="tool-item-name-row">
-                    <span className="tool-item-name">Current Date</span>
-                    <span className="tool-item-status">
-                      {isCurrentModelToolSupported && toolsEnabled ? "Ready" : "Inactive"}
-                    </span>
-                  </div>
-                  <span className="tool-item-desc">
-                    Retrieves current day, month, date, and year
-                  </span>
-                </div>
-              </div>
-
-              <div
-                className={`tool-item-card ${
-                  isCurrentModelToolSupported && toolsEnabled ? "active" : "dormant"
-                }`}
-              >
-                <div className="tool-item-icon-box">
-                  <IconCalendarTime size={16} />
-                </div>
-                <div className="tool-item-info">
-                  <div className="tool-item-name-row">
-                    <span className="tool-item-name">Day of Week</span>
-                    <span className="tool-item-status">
-                      {isCurrentModelToolSupported && toolsEnabled ? "Ready" : "Inactive"}
-                    </span>
-                  </div>
-                  <span className="tool-item-desc">
-                    Finds the weekday and relative days for any date
-                  </span>
-                </div>
-              </div>
-
-              <div
-                className={`tool-item-card ${
-                  isCurrentModelToolSupported && toolsEnabled ? "active" : "dormant"
-                }`}
-              >
-                <div className="tool-item-icon-box">
-                  <IconCalculator size={16} />
-                </div>
-                <div className="tool-item-info">
-                  <div className="tool-item-name-row">
-                    <span className="tool-item-name">Calculator</span>
-                    <span className="tool-item-status">
-                      {isCurrentModelToolSupported && toolsEnabled ? "Ready" : "Inactive"}
-                    </span>
-                  </div>
-                  <span className="tool-item-desc">
-                    Safe AST math, percentages, powers, and expressions
-                  </span>
-                </div>
-              </div>
-
-              <div
-                className={`tool-item-card ${
-                  isCurrentModelToolSupported && toolsEnabled ? "active" : "dormant"
-                }`}
-              >
-                <div className="tool-item-icon-box">
-                  <IconDeviceDesktopAnalytics size={16} />
-                </div>
-                <div className="tool-item-info">
-                  <div className="tool-item-name-row">
-                    <span className="tool-item-name">System Status</span>
-                    <span className="tool-item-status">
-                      {isCurrentModelToolSupported && toolsEnabled ? "Ready" : "Inactive"}
-                    </span>
-                  </div>
-                  <span className="tool-item-desc">
-                    Checks system health, OS runtime, and model status
-                  </span>
-                </div>
-              </div>
-
+              {/* Tool 3: Web Search */}
               <div
                 className={`tool-item-card ${
                   isCurrentModelToolSupported && toolsEnabled ? "active" : "dormant"
@@ -1098,11 +714,12 @@ export const SettingsScreen: React.FC<SettingsScreenProps> = ({
                     </span>
                   </div>
                   <span className="tool-item-desc">
-                    Searches live web & news via Tavily AI / DuckDuckGo
+                    Searches live web & news via Tavily AI or DuckDuckGo
                   </span>
                 </div>
               </div>
 
+              {/* Tool 4: Web Page Reader */}
               <div
                 className={`tool-item-card ${
                   isCurrentModelToolSupported && toolsEnabled ? "active" : "dormant"
@@ -1119,7 +736,117 @@ export const SettingsScreen: React.FC<SettingsScreenProps> = ({
                     </span>
                   </div>
                   <span className="tool-item-desc">
-                    Directly reads & summarizes specific URLs & websites
+                    Directly reads and extracts full text from websites
+                  </span>
+                </div>
+              </div>
+
+              {/* Tool 5: Calculator */}
+              <div
+                className={`tool-item-card ${
+                  isCurrentModelToolSupported && toolsEnabled ? "active" : "dormant"
+                }`}
+              >
+                <div className="tool-item-icon-box">
+                  <IconCalculator size={16} />
+                </div>
+                <div className="tool-item-info">
+                  <div className="tool-item-name-row">
+                    <span className="tool-item-name">Calculator</span>
+                    <span className="tool-item-status">
+                      {isCurrentModelToolSupported && toolsEnabled ? "Ready" : "Inactive"}
+                    </span>
+                  </div>
+                  <span className="tool-item-desc">
+                    Safe AST math, arithmetic, powers, and percentages
+                  </span>
+                </div>
+              </div>
+
+              {/* Tool 6: System Status */}
+              <div
+                className={`tool-item-card ${
+                  isCurrentModelToolSupported && toolsEnabled ? "active" : "dormant"
+                }`}
+              >
+                <div className="tool-item-icon-box">
+                  <IconDeviceDesktopAnalytics size={16} />
+                </div>
+                <div className="tool-item-info">
+                  <div className="tool-item-name-row">
+                    <span className="tool-item-name">System Status</span>
+                    <span className="tool-item-status">
+                      {isCurrentModelToolSupported && toolsEnabled ? "Ready" : "Inactive"}
+                    </span>
+                  </div>
+                  <span className="tool-item-desc">
+                    Checks CPU, RAM, OS runtime, and server health
+                  </span>
+                </div>
+              </div>
+
+              {/* Tool 7: Clock & Timezone */}
+              <div
+                className={`tool-item-card ${
+                  isCurrentModelToolSupported && toolsEnabled ? "active" : "dormant"
+                }`}
+              >
+                <div className="tool-item-icon-box">
+                  <IconClock size={16} />
+                </div>
+                <div className="tool-item-info">
+                  <div className="tool-item-name-row">
+                    <span className="tool-item-name">Clock & Time</span>
+                    <span className="tool-item-status">
+                      {isCurrentModelToolSupported && toolsEnabled ? "Ready" : "Inactive"}
+                    </span>
+                  </div>
+                  <span className="tool-item-desc">
+                    Live 12h/24h time, worldwide timezones, and city offsets
+                  </span>
+                </div>
+              </div>
+
+              {/* Tool 8: Calendar & Date */}
+              <div
+                className={`tool-item-card ${
+                  isCurrentModelToolSupported && toolsEnabled ? "active" : "dormant"
+                }`}
+              >
+                <div className="tool-item-icon-box">
+                  <IconCalendar size={16} />
+                </div>
+                <div className="tool-item-info">
+                  <div className="tool-item-name-row">
+                    <span className="tool-item-name">Calendar & Date</span>
+                    <span className="tool-item-status">
+                      {isCurrentModelToolSupported && toolsEnabled ? "Ready" : "Inactive"}
+                    </span>
+                  </div>
+                  <span className="tool-item-desc">
+                    Retrieves day, month, year, weekdays, and relative dates
+                  </span>
+                </div>
+              </div>
+
+              {/* Tool 9: Tool Discovery */}
+              <div
+                className={`tool-item-card ${
+                  isCurrentModelToolSupported && toolsEnabled ? "active" : "dormant"
+                }`}
+              >
+                <div className="tool-item-icon-box">
+                  <IconSparkles size={16} />
+                </div>
+                <div className="tool-item-info">
+                  <div className="tool-item-name-row">
+                    <span className="tool-item-name">Tool Discovery</span>
+                    <span className="tool-item-status">
+                      {isCurrentModelToolSupported && toolsEnabled ? "Ready" : "Inactive"}
+                    </span>
+                  </div>
+                  <span className="tool-item-desc">
+                    Dynamic tool catalog inspection before declining requests
                   </span>
                 </div>
               </div>
@@ -1171,3 +898,4 @@ export const SettingsScreen: React.FC<SettingsScreenProps> = ({
     </div>
   );
 };
+export default SettingsScreen;
