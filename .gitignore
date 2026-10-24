@@ -38,8 +38,15 @@ venv.bak/
 .DS_Store
 Thumbs.db
 
-# Large VRM binary models (can be tracked or untracked depending on git lfs; ignore temporary exports)
-# client/public/characters/*.vrm
+# Large VRM binary models & custom assets
+client/public/characters/
+
+# Untracked project modules & documentation
+server/src/prompts/
+server/src/tts/fish_speech.py
+spec/
+.agents/
+docs/
 
 # Logs and scratch
 npm-debug.log*
